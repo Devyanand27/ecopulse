@@ -1,0 +1,28 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment Variables (Sensitive Data)
+.env
+.env.local
+.env.*.local
+
+# IDE / OS Files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Model Files (Agar aapne train kiya hai toh)
+*.pkl
+*.joblib

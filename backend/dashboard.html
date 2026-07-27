@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>EcoPulse · Global Climate Intelligence</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%2310b981' d='M256 506.5c-119.6 0-216.5-96.9-216.5-216.5S136.4 73.5 256 73.5s216.5 96.9 216.5 216.5S375.6 506.5 256 506.5zM275.2 338c-5.2 1.5-11.2-.1-14.7-4.7-10.8-14.5-22.4-27.5-35.3-39.2-6.2-5.6-16.6-1.8-18.1 5.9-1.7 8.9-6.7 16.9-14.4 20.5-8.4 3.9-18.5 1.7-24.5-5.4-12.1-14.3-22.7-29.7-31.7-46.5-3.6-7.6 1.8-16.6 9.5-17.7l34.8-5c4.6-.7 9.1 1.2 11.6 5 5.2 8 11.5 15.2 18.6 21.4 6.7 5.8 16.6 3.2 19-3.9 1.5-4.2 1.2-8.6-1.5-12.1-3.5-4.8-8.2-8.9-13.5-12.1-12.5-7.6-27.1-9.6-41.2-6.5-13.6 3-25.2 11.1-32.3 23.3-16.9 29.3-5.5 64.8 26.3 82.4 53.5 5.6 7.5 17.3 9.1 24.5 4z'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-heat/0.2.0/leaflet-heat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:#0b0f19; color:#fff; overflow:hidden; height:100vh; }
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:#1e293b; }
+        ::-webkit-scrollbar-thumb { background:#10b981; border-radius:3px; }
+
+        /* ===== GLASS ===== */
+        .glass-card { background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px; transition:transform .2s,box-shadow .2s; }
+        .glass-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(16,185,129,0.15); }
+
+        /* ===== LAYOUT ===== */
+        #app { display:flex; height:100vh; width:100vw; position:relative; }
+        #sidebar {
+            width:420px; min-width:420px; height:100vh; padding:16px 12px; overflow-y:auto;
+            background:rgba(11,15,25,0.85); backdrop-filter:blur(16px); border-right:1px solid rgba(255,255,255,0.06);
+            z-index:10; display:flex; flex-direction:column; gap:10px;
+        }
+        .logo { display:flex; align-items:center; gap:12px; font-size:22px; font-weight:800; color:#10b981; }
+        .logo i { font-size:28px; color:#0d9488; }
+        .logo span { background:linear-gradient(135deg,#10b981,#0d9488); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+        /* ===== SEARCH ===== */
+        .search-box { display:flex; gap:8px; }
+        .search-box input { flex:1; padding:10px 14px; border-radius:30px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:#fff; font-size:14px; outline:none; }
+        .search-box input::placeholder { color:#94a3b8; }
+        .search-box button { padding:10px 18px; border-radius:30px; border:none; background:#10b981; color:#0b0f19; font-weight:600; cursor:pointer; }
+
+        /* ===== KPI ===== */
+        .kpi-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+        .kpi-item { text-align:center; padding:8px 4px; background:rgba(16,185,129,0.08); border-radius:12px; border-left:2px solid #10b981; }
+        .kpi-item .label { font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#94a3b8; }
+        .kpi-item .value { font-size:20px; font-weight:700; color:#fff; }
+
+        /* ===== TOGGLES ===== */
+        .feature-toggles { display:flex; flex-wrap:wrap; gap:5px; }
+        .feature-toggles button { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:5px 12px; font-size:10px; font-weight:500; color:#94a3b8; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:4px; }
+        .feature-toggles button.active { background:rgba(16,185,129,0.25); border-color:#10b981; color:#10b981; }
+        .feature-toggles button:hover { background:rgba(255,255,255,0.12); }
+
+        /* ===== CHART ===== */
+        .chart-container { height:130px; margin:4px 0; }
+
+        /* ===== ALERTS FEED ===== */
+        .alert-feed { max-height:110px; overflow-y:auto; font-size:12px; }
+        .alert-item { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; }
+        .alert-item:hover { background:rgba(255,255,255,0.03); }
+        .severity-warning { color:#f43f5e; font-weight:600; }
+        .severity-watch { color:#f59e0b; font-weight:600; }
+        .severity-advisory { color:#6366f1; font-weight:600; }
+
+        /* ===== MAP ===== */
+        #map-container { flex:1; height:100vh; position:relative; }
+        #map { width:100%; height:100%; background:#0b0f19; }
+
+        /* ===== MAP CONTROLS ===== */
+        .map-controls { position:absolute; top:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:1000; }
+        .map-controls button { background:rgba(15,23,42,0.8); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.08); border-radius:12px; width:44px; height:44px; color:#fff; font-size:18px; cursor:pointer; transition:all .2s; position:relative; }
+        .map-controls button:hover { background:rgba(16,185,129,0.25); }
+        .map-controls button .tooltip { display:none; position:absolute; right:52px; top:50%; transform:translateY(-50%); background:rgba(11,15,25,0.95); color:#e2e8f0; padding:6px 12px; border-radius:8px; font-size:12px; white-space:nowrap; border:1px solid rgba(255,255,255,0.06); }
+        .map-controls button:hover .tooltip { display:block; }
+
+        /* ===== LEGEND ===== */
+        .legend-panel { position:absolute; top:80px; right:20px; z-index:1001; background:rgba(11,15,25,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:16px; min-width:220px; display:none; max-height:60vh; overflow-y:auto; }
+        .legend-panel.open { display:block; }
+        .legend-item { display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:12px; color:#e2e8f0; }
+        .legend-swatch { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.1); flex-shrink:0; font-size:14px; color:#fff; }
+        .legend-title { font-weight:600; margin-top:8px; margin-bottom:4px; color:#10b981; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:3px; }
+
+        /* ===== MODALS ===== */
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px; }
+        .modal-overlay.open { display:flex; }
+        .modal-content { background:#0b0f19; max-width:900px; max-height:85vh; overflow-y:auto; padding:40px 36px; border-radius:32px; border:1px solid rgba(255,255,255,0.06); box-shadow:0 40px 80px rgba(0,0,0,0.8); width:100%; }
+        .modal-content h1 { font-size:32px; font-weight:800; color:#10b981; margin-bottom:8px; }
+        .modal-content h2 { font-size:22px; font-weight:600; margin:24px 0 12px; color:#e2e8f0; }
+        .modal-content p { color:#94a3b8; line-height:1.6; margin-bottom:12px; }
+        .modal-content .close-btn { float:right; background:none; border:none; color:#94a3b8; font-size:28px; cursor:pointer; }
+        .modal-content .close-btn:hover { color:#fff; }
+        .modal-content ul { color:#94a3b8; padding-left:20px; }
+
+        /* ===== LOCATION LABEL ===== */
+        .location-label { font-size:12px; color:#94a3b8; padding:4px 10px; background:rgba(255,255,255,0.04); border-radius:20px; display:inline-block; }
+        .location-label .rain-badge { margin-left:8px; padding:0 8px; border-radius:12px; font-weight:600; font-size:11px; }
+        .rain-badge.raining { background:rgba(59,130,246,0.3); color:#60a5fa; }
+        .rain-badge.not-raining { background:rgba(251,191,36,0.2); color:#fbbf24; }
+
+        /* ===== CHAT WIDGET ===== */
+        .chat-widget { position:fixed; bottom:30px; right:30px; z-index:9998; }
+        .chat-toggle { background:#10b981; border:none; border-radius:50%; width:60px; height:60px; color:#fff; font-size:28px; cursor:pointer; box-shadow:0 4px 20px rgba(16,185,129,0.4); transition:all .3s; }
+        .chat-toggle:hover { transform:scale(1.1); }
+        .chat-box { display:none; position:absolute; bottom:80px; right:0; width:350px; max-height:450px; background:rgba(15,23,42,0.95); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:16px; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.8); }
+        .chat-box.open { display:block; }
+        .chat-messages { max-height:300px; overflow-y:auto; margin-bottom:12px; }
+        .chat-msg { padding:8px 12px; border-radius:12px; margin-bottom:6px; max-width:85%; }
+        .chat-msg.user { background:#10b981; color:#0b0f19; margin-left:auto; }
+        .chat-msg.bot { background:rgba(255,255,255,0.06); color:#e2e8f0; }
+        .chat-input { display:flex; gap:8px; }
+        .chat-input input { flex:1; padding:10px; border-radius:30px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:#fff; outline:none; }
+        .chat-input button { padding:10px 16px; border-radius:30px; border:none; background:#10b981; color:#0b0f19; font-weight:600; cursor:pointer; }
+
+        /* ===== TIME SLIDER ===== */
+        .time-slider { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); z-index:1000; background:rgba(15,23,42,0.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:12px 20px; display:flex; align-items:center; gap:16px; min-width:300px; }
+        .time-slider input[type="range"] { flex:1; accent-color:#10b981; }
+        .time-slider .date-label { color:#94a3b8; font-size:12px; min-width:80px; text-align:center; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width:768px) {
+            #sidebar { width:100%; min-width:unset; height:40vh; border-right:none; border-bottom:1px solid rgba(255,255,255,0.06); }
+            #map-container { height:60vh; }
+            #app { flex-direction:column; }
+            .kpi-grid { grid-template-columns:1fr 1fr; }
+            .legend-panel { top:60px; right:10px; max-width:180px; font-size:11px; padding:12px; }
+            .chat-box { width:280px; right:-20px; }
+            .time-slider { min-width:200px; padding:8px 12px; bottom:10px; }
+        }
+
+        /* ===== NEW FEATURE STYLES ===== */
+        .analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        .analytics-card { background:rgba(255,255,255,0.03); border-radius:12px; padding:16px; text-align:center; }
+        .analytics-card .number { font-size:32px; font-weight:700; color:#10b981; }
+        .analytics-card .label { color:#94a3b8; font-size:12px; }
+
+        .lang-toggle { display:flex; gap:6px; align-items:center; }
+        .lang-toggle button { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:4px 10px; color:#94a3b8; cursor:pointer; font-size:12px; }
+        .lang-toggle button.active { background:rgba(16,185,129,0.2); border-color:#10b981; color:#10b981; }
+
+        .subscribe-btn { background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.2); border-radius:12px; padding:8px 14px; color:#a5b4fc; cursor:pointer; font-size:12px; }
+        .subscribe-btn:hover { background:rgba(99,102,241,0.25); }
+
+        .scenario-slider { display:flex; align-items:center; gap:10px; margin:4px 0; }
+        .scenario-slider label { font-size:12px; color:#94a3b8; min-width:80px; }
+        .scenario-slider input { flex:1; accent-color:#10b981; }
+        .scenario-slider span { font-size:12px; color:#e2e8f0; min-width:30px; text-align:right; }
+
+        .risk-item { display:flex; justify-content:space-between; padding:6px 8px; border-radius:8px; background:rgba(255,255,255,0.03); margin-bottom:4px; font-size:12px; }
+        .risk-item .city { font-weight:600; color:#e2e8f0; }
+        .risk-item .score { padding:2px 10px; border-radius:12px; font-weight:600; }
+        .risk-item .score.high { background:#f43f5e; color:#fff; }
+        .risk-item .score.medium { background:#f59e0b; color:#0b0f19; }
+        .risk-item .score.low { background:#10b981; color:#fff; }
+
+        .compare-select { width:100%; padding:8px; border-radius:12px; background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); outline:none; }
+        .compare-select option { background:#0b0f19; }
+        .btn-primary { background:#10b981; border:none; border-radius:12px; padding:8px 16px; color:#0b0f19; font-weight:600; cursor:pointer; font-size:12px; }
+        .btn-primary:hover { opacity:0.8; }
+
+        .learn-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .learn-card { background:rgba(255,255,255,0.03); border-radius:12px; padding:12px; }
+        .learn-card h4 { color:#10b981; font-size:14px; margin-bottom:4px; }
+        .learn-card p { color:#94a3b8; font-size:12px; line-height:1.4; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            <span>EcoPulse</span>
+            <span style="font-size:12px; font-weight:400; color:#94a3b8; margin-left:auto;">v3.3</span>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+            <div class="search-box" style="flex:1;">
+                <input id="cityInput" placeholder="Search city..." />
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="lang-toggle">
+                <button class="active" data-lang="en">EN</button>
+                <button data-lang="ur">اردو</button>
+                <button data-lang="hi">हिंदी</button>
+            </div>
+        </div>
+
+        <div id="currentLocation" class="location-label">
+            <i class="fas fa-map-pin"></i> Current: Global View
+            <span id="rainStatusBadge" style="display:none;"></span>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-item"><div class="label">🔥 Fires</div><div class="value" id="kpi-fires">--</div></div>
+            <div class="kpi-item"><div class="label">⚠️ Alerts</div><div class="value" id="kpi-alerts">--</div></div>
+            <div class="kpi-item"><div class="label">🌡️ Avg Temp</div><div class="value" id="kpi-temp">--</div></div>
+        </div>
+
+        <div class="feature-toggles">
+            <button class="active" data-layer="weather" style="color:#38bdf8;"><i class="fas fa-cloud-rain"></i> Weather</button>
+            <button class="active" data-layer="fires" style="color:#f43f5e;"><i class="fas fa-fire"></i> Fires</button>
+            <button data-layer="ocean" style="color:#2dd4bf;"><i class="fas fa-water"></i> Ocean</button>
+            <button data-layer="carbon" style="color:#a78bfa;"><i class="fas fa-industry"></i> Carbon</button>
+            <button data-layer="turbulence" style="color:#f472b6;"><i class="fas fa-plane"></i> Turbulence</button>
+            <button data-layer="pollen" style="color:#a3e635;"><i class="fas fa-allergies"></i> Pollen</button>
+            <button data-layer="uhi" style="color:#fb923c;"><i class="fas fa-city"></i> UHI</button>
+            <button data-layer="risk" style="color:#fbbf24;"><i class="fas fa-shield-alt"></i> Risk</button>
+            <button data-layer="alerts" style="color:#f87171;"><i class="fas fa-bell"></i> Alerts</button>
+            <!-- Labels button removed -->
+        </div>
+
+        <!-- RISK ALERTS PANEL -->
+        <div class="glass-card" style="background:rgba(244,63,94,0.05); border-left:3px solid #f43f5e;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; font-weight:600; color:#f43f5e;"><i class="fas fa-exclamation-triangle"></i> Risk Alerts</span>
+                <button onclick="fetchRiskAlerts()" style="background:rgba(255,255,255,0.05); border:none; border-radius:20px; padding:2px 12px; color:#94a3b8; font-size:10px; cursor:pointer;">Refresh</button>
+            </div>
+            <div id="riskAlertsContainer" style="max-height:120px; overflow-y:auto; margin-top:6px;">
+                <div style="color:#94a3b8; font-size:12px;">Loading risks...</div>
+            </div>
+        </div>
+
+        <!-- SCENARIO PLANNER -->
+        <div class="glass-card" style="border-left:3px solid #a78bfa;">
+            <div style="display:flex; justify-content:space-between;">
+                <span style="font-size:13px; font-weight:600; color:#a78bfa;"><i class="fas fa-sliders-h"></i> Scenario Planner</span>
+                <button onclick="runScenario()" class="btn-primary" style="padding:4px 16px; font-size:11px;">Predict</button>
+            </div>
+            <div class="scenario-slider">
+                <label>Urban Density</label>
+                <input type="range" id="urbanSlider" min="0" max="100" value="50" oninput="document.getElementById('urbanVal').textContent=this.value">
+                <span id="urbanVal">50</span>
+            </div>
+            <div class="scenario-slider">
+                <label>Vegetation</label>
+                <input type="range" id="vegSlider" min="0" max="100" value="50" oninput="document.getElementById('vegVal').textContent=this.value">
+                <span id="vegVal">50</span>
+            </div>
+            <div class="scenario-slider">
+                <label>Renewable %</label>
+                <input type="range" id="renSlider" min="0" max="100" value="30" oninput="document.getElementById('renVal').textContent=this.value">
+                <span id="renVal">30</span>
+            </div>
+            <div id="scenarioResult" style="font-size:12px; color:#e2e8f0; margin-top:4px;">Anomaly: --°C | Carbon: -- gCO₂/kWh</div>
+        </div>
+
+        <!-- MULTI-CITY COMPARE -->
+        <div class="glass-card" style="border-left:3px solid #fbbf24;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; font-weight:600; color:#fbbf24;"><i class="fas fa-arrows-h"></i> Compare Cities</span>
+                <button onclick="compareCities()" class="btn-primary" style="padding:4px 16px; font-size:11px;">Compare</button>
+            </div>
+            <select id="citySelect" class="compare-select" multiple size="2" style="height:60px;">
+                <option value="Karachi">Karachi</option>
+                <option value="Lahore">Lahore</option>
+                <option value="Islamabad">Islamabad</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi">Delhi</option>
+                <option value="London">London</option>
+                <option value="New York">New York</option>
+                <option value="Tokyo">Tokyo</option>
+                <option value="Sydney">Sydney</option>
+                <option value="Cape Town">Cape Town</option>
+            </select>
+            <div id="compareResult" style="font-size:12px; color:#94a3b8; margin-top:4px;">Select 2-3 cities and click Compare.</div>
+        </div>
+
+        <!-- 7-DAY FORECAST CHART -->
+        <div class="glass-card" style="flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size:13px; font-weight:600; color:#e2e8f0;">📊 7‑Day Forecast <span id="chartLocation" style="font-weight:400; color:#94a3b8; font-size:11px;">(Global)</span></span>
+                <span style="font-size:11px; color:#94a3b8;">Temp °C / Rain %</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="tempChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ALERTS FEED -->
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; font-weight:600; color:#e2e8f0;"><i class="fas fa-bell" style="color:#f59e0b;"></i> Live Alerts</span>
+                <div style="display:flex; gap:8px;">
+                    <button class="subscribe-btn" onclick="subscribeAlerts()"><i class="fas fa-envelope"></i> Subscribe</button>
+                    <span style="font-size:10px; color:#94a3b8;">Click for details</span>
+                </div>
+            </div>
+            <div class="alert-feed" id="alertFeed">
+                <div class="alert-item" style="color:#94a3b8;">No active alerts</div>
+            </div>
+            <div style="font-size:10px; color:#64748b; margin-top:4px; display:flex; gap:12px;">
+                <span><span style="color:#f43f5e;">●</span> Warning = Emergency</span>
+                <span><span style="color:#f59e0b;">●</span> Watch = Be Ready</span>
+                <span><span style="color:#6366f1;">●</span> Advisory = Caution</span>
+            </div>
+        </div>
+
+        <!-- BOTTOM BUTTONS -->
+        <div style="display:flex; gap:8px; margin-top:auto; flex-wrap:wrap;">
+            <button onclick="openAbout()" style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.2); border-radius:12px; padding:10px 16px; color:#a5b4fc; font-weight:500; cursor:pointer; flex:1;">About</button>
+            <button onclick="openAnalytics()" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:10px 16px; color:#10b981; font-weight:500; cursor:pointer; flex:1;">Analytics</button>
+            <button onclick="openLearn()" style="background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.2); border-radius:12px; padding:10px 16px; color:#fbbf24; font-weight:500; cursor:pointer; flex:1;">Learn</button>
+            <button onclick="refreshAll()" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:10px 16px; color:#10b981; font-weight:500; cursor:pointer; flex:1;">Refresh</button>
+        </div>
+    </div>
+
+    <!-- MAP -->
+    <div id="map-container">
+        <div id="map"></div>
+        <div class="map-controls">
+            <button onclick="resetView()"><i class="fas fa-home"></i><span class="tooltip">Reset</span></button>
+            <button onclick="toggleHeatmap()"><i class="fas fa-fire"></i><span class="tooltip">Heatmap</span></button>
+            <button onclick="toggleLegend()"><i class="fas fa-list"></i><span class="tooltip">Legend</span></button>
+            <button onclick="toggleTimeSlider()"><i class="fas fa-clock"></i><span class="tooltip">History</span></button>
+        </div>
+        <div id="legendPanel" class="legend-panel"></div>
+        <div class="time-slider" id="timeSlider" style="display:none;">
+            <span style="color:#94a3b8; font-size:12px;">⏳</span>
+            <input type="range" id="historySlider" min="0" max="30" value="7" step="1" />
+            <span class="date-label" id="historyDateLabel">Last 7 days</span>
+            <button onclick="applyHistorical()" style="background:#10b981; border:none; border-radius:20px; padding:4px 12px; color:#0b0f19; font-weight:600; cursor:pointer;">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- ANALYTICS MODAL -->
+<div class="modal-overlay" id="analyticsModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeAnalytics()">&times;</button>
+        <h1>📊 Global Analytics</h1>
+        <div id="analyticsContent">
+            <div class="analytics-grid">
+                <div class="analytics-card"><div class="number" id="analyticsFires">--</div><div class="label">Active Fires</div></div>
+                <div class="analytics-card"><div class="number" id="analyticsAlerts">--</div><div class="label">Active Alerts</div></div>
+                <div class="analytics-card"><div class="number" id="analyticsTemp">--</div><div class="label">Avg Temperature (°C)</div></div>
+                <div class="analytics-card"><div class="number" id="analyticsTimestamp">--</div><div class="label">Last Updated</div></div>
+            </div>
+            <canvas id="analyticsChart" style="height:200px; margin-top:16px;"></canvas>
+        </div>
+        <button onclick="closeAnalytics()" style="margin-top:20px; background:#10b981; border:none; border-radius:12px; padding:12px 28px; color:#0b0f19; font-weight:700; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<!-- ABOUT MODAL -->
+<div class="modal-overlay" id="aboutModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeAbout()">&times;</button>
+        <h1>🌿 EcoPulse v3.3</h1>
+        <p style="font-size:18px; color:#10b981;">Global Climate Intelligence Platform</p>
+        <p><strong>Mission:</strong> Real‑time, hyper‑local climate risk intelligence with predictive alerts, scenario planning, and multi‑city comparison.</p>
+        <h2>🚀 New Features</h2>
+        <ul>
+            <li><strong>🔮 Risk Alerts</strong> – Fire & flood risk scores for major cities.</li>
+            <li><strong>📊 Scenario Simulator</strong> – Adjust urban density, vegetation, renewables to see climate impact.</li>
+            <li><strong>🌐 Multi‑City Compare</strong> – Compare metrics across cities.</li>
+            <li><strong>📚 Learning Center</strong> – Understand climate terms.</li>
+        </ul>
+        <h2>🌍 Core Features</h2>
+        <ul>
+            <li>Weather, Fires, Ocean, Carbon, Turbulence, Pollen, UHI, Risk, Alerts</li>
+            <li>AI/ML prediction with SHAP explainability</li>
+            <li>Real‑time WebSocket updates</li>
+            <li>PWA – installable on mobile</li>
+        </ul>
+        <button onclick="closeAbout()" style="margin-top:20px; background:#10b981; border:none; border-radius:12px; padding:12px 28px; color:#0b0f19; font-weight:700; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<!-- LEARNING CENTER MODAL -->
+<div class="modal-overlay" id="learnModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeLearn()">&times;</button>
+        <h1>📚 Climate Learning Center</h1>
+        <p style="color:#94a3b8; margin-bottom:16px;">Understanding the terms behind the data helps you make informed decisions.</p>
+        <div class="learn-grid">
+            <div class="learn-card"><h4>🌡️ Temperature</h4><p>Measures how hot or cold the air is. Affects energy use, agriculture, and health.</p></div>
+            <div class="learn-card"><h4>💧 Humidity</h4><p>The amount of water vapor in the air. High humidity makes it feel hotter and can cause discomfort.</p></div>
+            <div class="learn-card"><h4>💨 Wind Speed</h4><p>How fast air is moving. Strong winds spread fires, affect flights, and generate energy.</p></div>
+            <div class="learn-card"><h4>🌧️ Rain Probability</h4><p>Chance of precipitation. High probability (>80%) may cause flooding.</p></div>
+            <div class="learn-card"><h4>🔥 Fire Risk</h4><p>Combination of high temperature, low humidity, and strong winds – increases wildfire danger.</p></div>
+            <div class="learn-card"><h4>🌊 Ocean Anomaly</h4><p>Difference from normal sea surface temperature. Positive anomaly can cause coral bleaching.</p></div>
+            <div class="learn-card"><h4>⚡ Carbon Intensity</h4><p>Amount of CO₂ emitted per unit of electricity (gCO₂/kWh). Lower is cleaner.</p></div>
+            <div class="learn-card"><h4>🌿 Pollen</h4><p>Fine particles from plants that cause allergies. Higher levels affect respiratory health.</p></div>
+            <div class="learn-card"><h4>🏙️ UHI (Urban Heat Island)</h4><p>Cities are warmer than rural areas due to concrete and human activity.</p></div>
+            <div class="learn-card"><h4>🛡️ Risk Score</h4><p>Composite measure of climate vulnerability – higher score means lower risk.</p></div>
+            <div class="learn-card"><h4>⚠️ Alert Severity</h4><p><strong>Advisory</strong> – Caution; <strong>Watch</strong> – Be ready; <strong>Warning</strong> – Take action now.</p></div>
+            <div class="learn-card"><h4>🌍 Why This Matters</h4><p>Understanding climate data helps communities prepare for disasters, reduce emissions, and build resilience.</p></div>
+        </div>
+        <button onclick="closeLearn()" style="margin-top:20px; background:#10b981; border:none; border-radius:12px; padding:12px 28px; color:#0b0f19; font-weight:700; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<!-- CHATBOT -->
+<div class="chat-widget">
+    <button class="chat-toggle" onclick="toggleChat()"><i class="fas fa-robot"></i></button>
+    <div class="chat-box" id="chatBox">
+        <div style="font-weight:600; color:#10b981; margin-bottom:8px;">🤖 Climate Assistant</div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg bot">Hello! Ask me about weather, fires, alerts, or rain.</div>
+        </div>
+        <div class="chat-input">
+            <input id="chatInput" placeholder="Ask a question..." />
+            <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // GLOBALS
+    // ============================================================
+    let map, tempChart, ws;
+    let currentLat = 30, currentLon = 70;
+    let currentCity = 'Global';
+    let legendOpen = false;
+    let heatLayer = null;
+    let timeSliderOpen = false;
+    let analyticsChartInstance = null;
+    let compareChartInstance = null;
+    let currentLang = 'en';
+
+    const translations = {
+        en: {
+            current: 'Current',
+            global: 'Global View',
+            raining: 'Raining',
+            notRaining: 'Not raining',
+            fires: 'Fires',
+            alerts: 'Alerts',
+            avgTemp: 'Avg Temp',
+            noAlerts: 'No active alerts',
+            searchPlaceholder: 'Search city...',
+            forecast: '7‑Day Forecast',
+            liveAlerts: 'Live Alerts',
+            subscribe: 'Subscribe',
+            about: 'About',
+            analytics: 'Analytics',
+            refresh: 'Refresh',
+            warning: 'Emergency',
+            watch: 'Be Ready',
+            advisory: 'Caution'
+        },
+        ur: {
+            current: 'موجودہ',
+            global: 'عالمی منظر',
+            raining: 'بارش ہو رہی ہے',
+            notRaining: 'بارش نہیں ہو رہی',
+            fires: 'آگ',
+            alerts: 'انتباہات',
+            avgTemp: 'اوسط درجہ حرارت',
+            noAlerts: 'کوئی فعال انتباہ نہیں',
+            searchPlaceholder: 'شہر تلاش کریں...',
+            forecast: '۷ روزہ پیشن گوئی',
+            liveAlerts: 'براہ راست انتباہات',
+            subscribe: 'سبسکرائب کریں',
+            about: 'تعارف',
+            analytics: 'اعداد و شمار',
+            refresh: 'تازہ کریں',
+            warning: 'ہنگامی',
+            watch: 'تیار رہیں',
+            advisory: 'احتیاط'
+        },
+        hi: {
+            current: 'वर्तमान',
+            global: 'वैश्विक दृश्य',
+            raining: 'बारिश हो रही है',
+            notRaining: 'बारिश नहीं हो रही',
+            fires: 'आग',
+            alerts: 'चेतावनियाँ',
+            avgTemp: 'औसत तापमान',
+            noAlerts: 'कोई सक्रिय चेतावनी नहीं',
+            searchPlaceholder: 'शहर खोजें...',
+            forecast: '७‑दिन पूर्वानुमान',
+            liveAlerts: 'लाइव चेतावनियाँ',
+            subscribe: 'सदस्यता लें',
+            about: 'परिचय',
+            analytics: 'आंकड़े',
+            refresh: 'ताज़ा करें',
+            warning: 'आपातकाल',
+            watch: 'तैयार रहें',
+            advisory: 'सावधानी'
+        }
+    };
+
+    const layerGroups = {};
+    const FEATURES = ['weather','fires','ocean','carbon','turbulence','pollen','uhi','risk','alerts'];
+    FEATURES.forEach(f => { layerGroups[f] = L.layerGroup(); });
+    let activeLayers = {
+        weather:true, fires:true, ocean:false, carbon:false, turbulence:false,
+        pollen:false, uhi:false, risk:false, alerts:false
+    };
+
+    // No city labels – removed entirely
+
+    // ============================================================
+    // MAP INIT
+    // ============================================================
+    function initMap() {
+        map = L.map('map', { zoomControl:false }).setView([30,70],5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution:'&copy; OpenStreetMap, CartoDB'
+        }).addTo(map);
+        L.control.zoom({ position:'bottomright' }).addTo(map);
+
+        map.on('click', async function(e) {
+            const lat = e.latlng.lat, lng = e.latlng.lng;
+            currentLat = lat; currentLon = lng;
+            await updateLocationInfo(lat, lng);
+            await showLocationPopup(lat, lng);
+            await updateWeatherForLocation(lat, lng);
+        });
+
+        Object.values(layerGroups).forEach(lg => lg.addTo(map));
+    }
+
+    // ============================================================
+    // LOCATION LABEL & POPUP (unchanged)
+    // ============================================================
+    async function updateLocationInfo(lat, lon) {
+        try {
+            const w = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r=>r.json());
+            let rainChance = 20;
+            if (w && w.hourly && w.hourly.precipitation_probability && w.hourly.precipitation_probability.length > 0)
+                rainChance = w.hourly.precipitation_probability[0];
+            else rainChance = Math.floor(Math.random()*40)+10;
+            const isRaining = rainChance >= 60;
+            const label = document.getElementById('currentLocation');
+            const cityName = currentCity !== 'Global' ? currentCity : `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            const rainIcon = isRaining ? '🌧️' : '☀️';
+            const statusText = isRaining ? translations[currentLang].raining : translations[currentLang].notRaining;
+            label.innerHTML = `<i class="fas fa-map-pin"></i> ${cityName} <span class="rain-badge ${isRaining?'raining':'not-raining'}">${rainIcon} ${statusText}</span>`;
+        } catch(e) {}
+    }
+
+    async function showLocationPopup(lat, lon) {
+        try {
+            const w = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r=>r.json());
+            const temp = w.current?.temperature_2m || 'N/A';
+            const humidity = w.current?.relative_humidity_2m || 'N/A';
+            const wind = w.current?.wind_speed_10m || 'N/A';
+            let rainChance = 20;
+            if (w.hourly && w.hourly.precipitation_probability && w.hourly.precipitation_probability.length > 0)
+                rainChance = w.hourly.precipitation_probability[0];
+            const isRaining = rainChance >= 60;
+            const rainStatus = isRaining ? '🌧️ Raining' : '☀️ Not raining';
+            const pred = await fetch('/api/predict', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({ elevation:50+Math.random()*100, urban_density:20+Math.random()*60, veg_index:0.2+Math.random()*0.6, water_dist:1+Math.random()*8, hour:new Date().getHours() })
+            }).then(r=>r.json());
+            const anomaly = pred.anomaly ? pred.anomaly.toFixed(2) : 'N/A';
+            const fires = await fetch('/api/fires').then(r=>r.json());
+            const nearFires = fires.filter(f => Math.abs(f.lat-lat)<2 && Math.abs(f.lon-lon)<2);
+            const fireInfo = nearFires.length > 0 ? `🔥 ${nearFires.length} fires nearby` : '✅ No fires nearby';
+            const popupContent = `
+                <div style="color:#0b0f19; font-family:Inter; min-width:220px;">
+                    <h3 style="margin:0 0 6px; font-size:16px;">📍 ${lat.toFixed(4)}, ${lon.toFixed(4)}</h3>
+                    <hr style="border-color:#e2e8f0; margin:4px 0;">
+                    <p><strong>🌡️ Temp:</strong> ${temp}°C</p>
+                    <p><strong>💧 Humidity:</strong> ${humidity}%</p>
+                    <p><strong>💨 Wind:</strong> ${wind} km/h</p>
+                    <p><strong>🌧️ Rain:</strong> ${rainChance}% – ${rainStatus}</p>
+                    <p><strong>📊 Anomaly:</strong> ${anomaly}°C</p>
+                    <p><strong>${fireInfo}</strong></p>
+                    <p style="font-size:11px; color:#64748b;">${new Date().toLocaleString()}</p>
+                </div>
+            `;
+            L.popup({ maxWidth:350 }).setLatLng([lat,lon]).setContent(popupContent).openOn(map);
+        } catch(e) {
+            L.popup({ maxWidth:300 }).setLatLng([lat,lon]).setContent('⚠️ Data unavailable').openOn(map);
+        }
+    }
+
+    // ============================================================
+    // WEATHER FOR CHART
+    // ============================================================
+    async function updateWeatherForLocation(lat, lon) {
+        try {
+            const data = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r=>r.json());
+            if (data && data.current) document.getElementById('kpi-temp').textContent = data.current.temperature_2m + '°C';
+            if (data && data.daily && tempChart) {
+                const maxTemps = data.daily.temperature_2m_max || [24,26,28,27,25,23,22];
+                const minTemps = data.daily.temperature_2m_min || [14,15,16,15,13,12,11];
+                const rain = data.daily.precipitation_probability_max || [20,30,50,70,40,25,15];
+                tempChart.data.datasets[0].data = maxTemps;
+                tempChart.data.datasets[1].data = minTemps;
+                tempChart.data.datasets[2].data = rain;
+                tempChart.update();
+            }
+        } catch(e) {}
+    }
+
+    // ============================================================
+    // CHART INIT
+    // ============================================================
+    function initChart() {
+        const ctx = document.getElementById('tempChart').getContext('2d');
+        tempChart = new Chart(ctx, {
+            type:'line',
+            data: {
+                labels:['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'],
+                datasets: [
+                    { label:'Max Temp', data:[24,26,28,27,25,23,22], borderColor:'#f43f5e', backgroundColor:'rgba(244,63,94,0.1)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:'#f43f5e', yAxisID:'y' },
+                    { label:'Min Temp', data:[14,15,16,15,13,12,11], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:'#3b82f6', yAxisID:'y' },
+                    { label:'Rain %', data:[20,30,50,70,40,25,15], type:'bar', backgroundColor:'rgba(59,130,246,0.5)', borderColor:'#60a5fa', borderWidth:1, borderRadius:4, yAxisID:'y1' }
+                ]
+            },
+            options: {
+                responsive:true, maintainAspectRatio:false,
+                plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: function(ctx) {
+                    if (ctx.dataset.label === 'Rain %') return 'Rain: ' + ctx.parsed.y + '%';
+                    return ctx.dataset.label + ': ' + ctx.parsed.y + '°C';
+                } } } },
+                scales: {
+                    x: { grid:{ color:'rgba(255,255,255,0.05)' }, ticks:{ color:'#94a3b8', font:{ size:8 } } },
+                    y: { position:'left', grid:{ color:'rgba(255,255,255,0.05)' }, ticks:{ color:'#94a3b8', font:{ size:8 } }, min:0, max:45 },
+                    y1: { position:'right', grid:{ display:false }, ticks:{ color:'#60a5fa', font:{ size:8 }, callback:v=>v+'%' }, min:0, max:100 }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // ICON MARKER HELPER
+    // ============================================================
+    function createIconMarker(lat, lon, iconClass, color, popupContent, size=30) {
+        const html = `<div style="background-color:${color}; width:${size}px; height:${size}px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.3); box-shadow:0 0 12px rgba(0,0,0,0.6); font-size:${size*0.5}px; color:white;"><i class="fas ${iconClass}"></i></div>`;
+        const icon = L.divIcon({ html, className:'', iconSize:[size,size], iconAnchor:[size/2,size/2] });
+        const marker = L.marker([lat,lon], { icon });
+        if (popupContent) marker.bindPopup(popupContent);
+        return marker;
+    }
+
+    // ============================================================
+    // LAYER UPDATE FUNCTIONS (All 10 Features – no labels)
+    // ============================================================
+    function clearLayer(name) { layerGroups[name].clearLayers(); }
+
+    async function updateWeatherLayer(lat=30, lon=70) {
+        clearLayer('weather');
+        if (!activeLayers.weather) return;
+        const data = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r=>r.json());
+        if (!data || !data.current) return;
+        const temp = data.current.temperature_2m;
+        const rainChance = data.hourly?.precipitation_probability?.[0] || 20;
+        const color = temp > 30 ? '#f43f5e' : (temp > 20 ? '#f59e0b' : '#38bdf8');
+        const popup = `<b>🌤️ Weather</b><br>Temp: ${temp}°C<br>Rain: ${rainChance}%<br>Humidity: ${data.current.relative_humidity_2m}%<br>Wind: ${data.current.wind_speed_10m} km/h`;
+        const marker = createIconMarker(lat, lon, 'fa-cloud-rain', color, popup, 32);
+        layerGroups.weather.addLayer(marker);
+        if (rainChance > 30) {
+            for (let i=0; i<6; i++) {
+                const dLat = (Math.random()-0.5)*4, dLon = (Math.random()-0.5)*4;
+                const drop = L.circleMarker([lat+dLat, lon+dLon], { radius:2+Math.random()*4, color:'#60a5fa', fillColor:'#93c5fd', fillOpacity:0.3+Math.random()*0.4, weight:0.5 });
+                layerGroups.weather.addLayer(drop);
+            }
+        }
+    }
+
+    async function updateFiresLayer() {
+        clearLayer('fires');
+        if (!activeLayers.fires) return;
+        const fires = await fetch('/api/fires').then(r=>r.json());
+        fires.forEach(f => {
+            const color = f.confidence === 'high' ? '#f43f5e' : (f.confidence === 'medium' ? '#f59e0b' : '#94a3b8');
+            const popup = `<b>🔥 Wildfire</b><br>Confidence: ${f.confidence}<br>Brightness: ${f.brightness}<br>Type: ${f.type}`;
+            const marker = createIconMarker(f.lat, f.lon, 'fa-fire', color, popup, 28);
+            marker.on('click', function(){ map.setView([f.lat, f.lon], 10); });
+            layerGroups.fires.addLayer(marker);
+        });
+        document.getElementById('kpi-fires').textContent = fires.length;
+    }
+
+    async function updateOceanLayer(lat=30, lon=70) {
+        clearLayer('ocean');
+        if (!activeLayers.ocean) return;
+        const data = await fetch(`/api/ocean?lat=${lat}&lon=${lon}`).then(r=>r.json());
+        if (!data) return;
+        const color = data.anomaly > 1 ? '#f43f5e' : (data.anomaly < -1 ? '#3b82f6' : '#2dd4bf');
+        const popup = `<b>🌊 Ocean</b><br>SST: ${data.sst}°C<br>Anomaly: ${data.anomaly}°C<br>Coral Risk: ${data.coral_risk}`;
+        const marker = createIconMarker(lat, lon, 'fa-water', color, popup, 32);
+        layerGroups.ocean.addLayer(marker);
+    }
+
+    async function updateCarbonLayer(country='PK') {
+        clearLayer('carbon');
+        if (!activeLayers.carbon) return;
+        const data = await fetch(`/api/carbon?country=${country}`).then(r=>r.json());
+        if (!data) return;
+        const coords = { 'PK':[30,70], 'US':[40,-100], 'IN':[20,77], 'CN':[35,105], 'UK':[55,-3] };
+        const [lat, lon] = coords[country] || [30,70];
+        const intensity = data.carbon_intensity;
+        const color = intensity > 400 ? '#f43f5e' : (intensity > 250 ? '#a78bfa' : '#10b981');
+        const popup = `<b>⚡ Carbon</b><br>Country: ${data.country}<br>Intensity: ${intensity} gCO₂/kWh<br>Renewable: ${data.renewable_percent}%<br>Fossil: ${data.fossil_percent}%`;
+        const marker = createIconMarker(lat, lon, 'fa-industry', color, popup, 32);
+        layerGroups.carbon.addLayer(marker);
+    }
+
+    async function updateTurbulenceLayer() {
+        clearLayer('turbulence');
+        if (!activeLayers.turbulence) return;
+        const zones = await fetch('/api/turbulence').then(r=>r.json());
+        zones.forEach(z => {
+            const color = z.risk === 'severe' ? '#f43f5e' : (z.risk === 'high' ? '#f472b6' : '#6366f1');
+            const popup = `<b>✈️ Turbulence</b><br>Risk: ${z.risk.toUpperCase()}`;
+            const marker = createIconMarker(z.lat, z.lon, 'fa-plane', color, popup, 28);
+            layerGroups.turbulence.addLayer(marker);
+        });
+    }
+
+    async function updatePollenLayer(lat=30, lon=70) {
+        clearLayer('pollen');
+        if (!activeLayers.pollen) return;
+        const data = await fetch(`/api/pollen?lat=${lat}&lon=${lon}`).then(r=>r.json());
+        if (!data) return;
+        const color = data.overall_risk === 'high' ? '#f43f5e' : (data.overall_risk === 'moderate' ? '#a3e635' : '#10b981');
+        const popup = `<b>🌿 Pollen</b><br>Tree: ${data.tree}<br>Grass: ${data.grass}<br>Weed: ${data.weed}<br>Risk: ${data.overall_risk}`;
+        const marker = createIconMarker(lat, lon, 'fa-allergies', color, popup, 28);
+        layerGroups.pollen.addLayer(marker);
+    }
+
+    async function updateUHILayer(city='Karachi') {
+        clearLayer('uhi');
+        if (!activeLayers.uhi) return;
+        const data = await fetch(`/api/uhi?city=${city}`).then(r=>r.json());
+        if (!data) return;
+        const color = data.uhi_intensity > 5 ? '#f43f5e' : (data.uhi_intensity > 3 ? '#fb923c' : '#10b981');
+        const coords = { 'Karachi':[24.86,67.01], 'Lahore':[31.52,74.36], 'Islamabad':[33.68,73.05], 'Mumbai':[19.08,72.88] };
+        const [lat, lon] = coords[city] || [24.86,67.01];
+        const popup = `<b>🏙️ UHI</b><br>City: ${data.city}<br>Urban: ${data.urban_temp}°C<br>Rural: ${data.rural_temp}°C<br>Intensity: ${data.uhi_intensity}°C`;
+        const marker = createIconMarker(lat, lon, 'fa-city', color, popup, 32);
+        layerGroups.uhi.addLayer(marker);
+    }
+
+    async function updateRiskLayer(country='PK') {
+        clearLayer('risk');
+        if (!activeLayers.risk) return;
+        const data = await fetch(`/api/risk-score?country=${country}`).then(r=>r.json());
+        if (!data) return;
+        const score = data.score;
+        const color = score > 70 ? '#10b981' : (score > 40 ? '#fbbf24' : '#f43f5e');
+        const coords = { 'PK':[30,70], 'US':[40,-100], 'IN':[20,77], 'CN':[35,105], 'UK':[55,-3] };
+        const [lat, lon] = coords[country] || [30,70];
+        const popup = `<b>🛡️ Risk</b><br>Country: ${data.country}<br>Score: ${score}/100<br>Weather: ${data.components.extreme_weather}/10<br>Sea Level: ${data.components.sea_level}/10<br>Emissions: ${data.components.emissions}/10`;
+        const marker = createIconMarker(lat, lon, 'fa-shield-alt', color, popup, 32);
+        layerGroups.risk.addLayer(marker);
+    }
+
+    async function updateAlertsLayer() {
+        clearLayer('alerts');
+        if (!activeLayers.alerts) return;
+        const alerts = await fetch('/api/alerts').then(r=>r.json());
+        alerts.forEach(a => {
+            const color = a.severity === 'warning' ? '#f43f5e' : (a.severity === 'watch' ? '#f59e0b' : '#6366f1');
+            const popup = `<b>⚠️ Alert</b><br>Type: ${a.type}<br>Severity: ${a.severity.toUpperCase()}<br>Time: ${a.time}`;
+            const marker = createIconMarker(a.lat, a.lon, 'fa-bell', color, popup, 28);
+            layerGroups.alerts.addLayer(marker);
+        });
+        const feed = document.getElementById('alertFeed');
+        if (alerts.length === 0) {
+            feed.innerHTML = `<div class="alert-item" style="color:#94a3b8;">${translations[currentLang].noAlerts}</div>`;
+        } else {
+            feed.innerHTML = alerts.map(a => `
+                <div class="alert-item" onclick="map.setView([${a.lat}, ${a.lon}], 8);">
+                    <span><i class="fas fa-exclamation-triangle"></i> ${a.type}</span>
+                    <span class="severity-${a.severity}">${a.severity.toUpperCase()}</span>
+                </div>
+            `).join('');
+        }
+        document.getElementById('kpi-alerts').textContent = alerts.length;
+    }
+
+    // ============================================================
+    // REFRESH ALL
+    // ============================================================
+    async function refreshAll() {
+        await Promise.all([
+            updateWeatherLayer(currentLat, currentLon),
+            updateFiresLayer(),
+            updateOceanLayer(currentLat, currentLon),
+            updateCarbonLayer('PK'),
+            updateTurbulenceLayer(),
+            updatePollenLayer(currentLat, currentLon),
+            updateUHILayer('Karachi'),
+            updateRiskLayer('PK'),
+            updateAlertsLayer()
+        ]);
+        await updateWeatherForLocation(currentLat, currentLon);
+        await updateLocationInfo(currentLat, currentLon);
+        updateLegend();
+        fetchRiskAlerts();
+    }
+
+    // ============================================================
+    // TOGGLE FUNCTIONS
+    // ============================================================
+    function toggleLayer(name) {
+        activeLayers[name] = !activeLayers[name];
+        if (activeLayers[name]) {
+            switch(name) {
+                case 'weather': updateWeatherLayer(currentLat, currentLon); break;
+                case 'fires': updateFiresLayer(); break;
+                case 'ocean': updateOceanLayer(currentLat, currentLon); break;
+                case 'carbon': updateCarbonLayer('PK'); break;
+                case 'turbulence': updateTurbulenceLayer(); break;
+                case 'pollen': updatePollenLayer(currentLat, currentLon); break;
+                case 'uhi': updateUHILayer('Karachi'); break;
+                case 'risk': updateRiskLayer('PK'); break;
+                case 'alerts': updateAlertsLayer(); break;
+            }
+        } else {
+            clearLayer(name);
+        }
+        updateLegend();
+    }
+
+    function toggleLegend() {
+        legendOpen = !legendOpen;
+        document.getElementById('legendPanel').classList.toggle('open', legendOpen);
+        if (legendOpen) updateLegend();
+    }
+
+    function updateLegend() {
+        const panel = document.getElementById('legendPanel');
+        let html = '';
+        const legendData = {
+            weather: { title:'🌤️ Weather', items:[ { icon:'fa-cloud-rain', color:'#38bdf8', label:'Temp (cold→hot)' }, { icon:'fa-cloud-rain', color:'#60a5fa', label:'Rain >60%' } ] },
+            fires: { title:'🔥 Fires', items:[ { icon:'fa-fire', color:'#f43f5e', label:'High conf' }, { icon:'fa-fire', color:'#f59e0b', label:'Medium' }, { icon:'fa-fire', color:'#94a3b8', label:'Low' } ] },
+            ocean: { title:'🌊 Ocean', items:[ { icon:'fa-water', color:'#f43f5e', label:'Hot anomaly' }, { icon:'fa-water', color:'#2dd4bf', label:'Normal' }, { icon:'fa-water', color:'#3b82f6', label:'Cold anomaly' } ] },
+            carbon: { title:'⚡ Carbon', items:[ { icon:'fa-industry', color:'#f43f5e', label:'>400 gCO₂' }, { icon:'fa-industry', color:'#a78bfa', label:'250-400' }, { icon:'fa-industry', color:'#10b981', label:'<250' } ] },
+            turbulence: { title:'✈️ Turbulence', items:[ { icon:'fa-plane', color:'#f43f5e', label:'Severe' }, { icon:'fa-plane', color:'#f472b6', label:'High' }, { icon:'fa-plane', color:'#6366f1', label:'Moderate' } ] },
+            pollen: { title:'🌿 Pollen', items:[ { icon:'fa-allergies', color:'#f43f5e', label:'High' }, { icon:'fa-allergies', color:'#a3e635', label:'Moderate' }, { icon:'fa-allergies', color:'#10b981', label:'Low' } ] },
+            uhi: { title:'🏙️ UHI', items:[ { icon:'fa-city', color:'#f43f5e', label:'>5°C' }, { icon:'fa-city', color:'#fb923c', label:'3-5°C' }, { icon:'fa-city', color:'#10b981', label:'<3°C' } ] },
+            risk: { title:'🛡️ Risk', items:[ { icon:'fa-shield-alt', color:'#10b981', label:'Score >70' }, { icon:'fa-shield-alt', color:'#fbbf24', label:'40-70' }, { icon:'fa-shield-alt', color:'#f43f5e', label:'<40' } ] },
+            alerts: { title:'⚠️ Alerts', items:[ { icon:'fa-bell', color:'#f43f5e', label:'Warning' }, { icon:'fa-bell', color:'#f59e0b', label:'Watch' }, { icon:'fa-bell', color:'#6366f1', label:'Advisory' } ] }
+        };
+        for (const [key, data] of Object.entries(legendData)) {
+            if (activeLayers[key]) {
+                html += `<div class="legend-title">${data.title}</div>`;
+                data.items.forEach(item => {
+                    html += `<div class="legend-item"><span class="legend-swatch" style="background:${item.color};"><i class="fas ${item.icon}"></i></span>${item.label}</div>`;
+                });
+            }
+        }
+        if (!html) html = '<div style="color:#94a3b8; font-size:13px;">No active layers.</div>';
+        panel.innerHTML = html;
+        if (legendOpen) panel.classList.add('open');
+        else panel.classList.remove('open');
+    }
+
+    function toggleHeatmap() {
+        if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+        else {
+            const points = [];
+            for (let i=0; i<200; i++) points.push([Math.random()*60-30, Math.random()*120-10, Math.random()*0.8+0.2]);
+            heatLayer = L.heatLayer(points, { radius:25, blur:15, maxZoom:10 });
+            heatLayer.addTo(map);
+        }
+    }
+
+    function resetView() {
+        map.setView([30,70], 5);
+        currentLat = 30; currentLon = 70; currentCity = 'Global';
+        document.getElementById('chartLocation').textContent = '(Global)';
+        refreshAll();
+    }
+
+    // ============================================================
+    // TIME SLIDER
+    // ============================================================
+    function toggleTimeSlider() {
+        timeSliderOpen = !timeSliderOpen;
+        document.getElementById('timeSlider').style.display = timeSliderOpen ? 'flex' : 'none';
+    }
+
+    async function applyHistorical() {
+        const days = parseInt(document.getElementById('historySlider').value);
+        document.getElementById('historyDateLabel').textContent = `Last ${days} days`;
+        try {
+            const data = await fetch(`/api/historical?lat=${currentLat}&lon=${currentLon}&days=${days}`).then(r=>r.json());
+            if (data && data.daily) {
+                const temps = data.daily.temperature_2m_max || [];
+                const points = temps.map((t, i) => {
+                    const latOff = (Math.random()-0.5)*2;
+                    const lonOff = (Math.random()-0.5)*2;
+                    return [currentLat + latOff, currentLon + lonOff, t/40];
+                });
+                if (heatLayer) map.removeLayer(heatLayer);
+                heatLayer = L.heatLayer(points, { radius:20, blur:10, maxZoom:8 });
+                heatLayer.addTo(map);
+                if (tempChart) {
+                    const maxT = data.daily.temperature_2m_max || [];
+                    const minT = data.daily.temperature_2m_min || [];
+                    const rain = data.daily.precipitation_sum || [];
+                    const labels = data.daily.time.map(d => new Date(d).toLocaleDateString());
+                    tempChart.data.labels = labels.slice(0,7);
+                    tempChart.data.datasets[0].data = maxT.slice(0,7);
+                    tempChart.data.datasets[1].data = minT.slice(0,7);
+                    tempChart.data.datasets[2].data = rain.slice(0,7);
+                    tempChart.update();
+                }
+            }
+        } catch(e) { alert('Historical data error'); }
+    }
+
+    // ============================================================
+    // RISK ALERTS
+    // ============================================================
+    async function fetchRiskAlerts() {
+        const container = document.getElementById('riskAlertsContainer');
+        container.innerHTML = '<div style="color:#94a3b8; font-size:12px;">Loading...</div>';
+        try {
+            const res = await fetch('/api/risk-alerts');
+            const data = await res.json();
+            const alerts = data.alerts || [];
+            if (alerts.length === 0) {
+                container.innerHTML = '<div style="color:#10b981; font-size:12px;">✅ No high risks detected.</div>';
+                return;
+            }
+            let html = '';
+            alerts.forEach(a => {
+                const risk = a.fire_risk + a.flood_risk;
+                let cls = 'low';
+                if (risk >= 3) cls = 'high';
+                else if (risk >= 2) cls = 'medium';
+                html += `
+                    <div class="risk-item">
+                        <span class="city">${a.name}</span>
+                        <span class="score ${cls}">${risk > 0 ? 'Risk '+risk : '✅'}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch(e) {
+            container.innerHTML = '<div style="color:#f43f5e; font-size:12px;">⚠️ Error loading risks.</div>';
+        }
+    }
+
+    // ============================================================
+    // SCENARIO SIMULATOR
+    // ============================================================
+    async function runScenario() {
+        const urban = parseInt(document.getElementById('urbanSlider').value);
+        const veg = parseInt(document.getElementById('vegSlider').value) / 100;
+        const ren = parseInt(document.getElementById('renSlider').value);
+        try {
+            const res = await fetch('/api/scenario', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({ urban_density: urban, veg_index: veg, renewable_percent: ren })
+            });
+            const data = await res.json();
+            document.getElementById('scenarioResult').innerHTML = `
+                Anomaly: <strong>${data.anomaly.toFixed(2)}°C</strong> | 
+                Carbon: <strong>${data.carbon_intensity.toFixed(0)} gCO₂/kWh</strong>
+            `;
+        } catch(e) {
+            document.getElementById('scenarioResult').innerHTML = '⚠️ Error running scenario.';
+        }
+    }
+
+    // ============================================================
+    // MULTI-CITY COMPARE
+    // ============================================================
+    async function compareCities() {
+        const select = document.getElementById('citySelect');
+        const selected = Array.from(select.selectedOptions).map(opt => opt.value);
+        if (selected.length < 2) {
+            document.getElementById('compareResult').innerHTML = '⚠️ Please select at least 2 cities.';
+            return;
+        }
+        document.getElementById('compareResult').innerHTML = 'Loading...';
+        try {
+            const res = await fetch(`/api/compare?cities=${selected.join(',')}`);
+            const data = await res.json();
+            const comparison = data.comparison || [];
+            if (comparison.length === 0) {
+                document.getElementById('compareResult').innerHTML = 'No data available.';
+                return;
+            }
+            const labels = comparison.map(c => c.city);
+            const temps = comparison.map(c => c.temperature);
+            const fires = comparison.map(c => c.fires_nearby);
+            const carbons = comparison.map(c => c.carbon_intensity);
+            const uhis = comparison.map(c => c.uhi_intensity);
+            const risks = comparison.map(c => c.risk_score);
+
+            if (compareChartInstance) compareChartInstance.destroy();
+            const ctx = document.createElement('canvas');
+            ctx.id = 'compareChartCanvas';
+            document.getElementById('compareResult').innerHTML = '';
+            document.getElementById('compareResult').appendChild(ctx);
+            compareChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Temp (°C)', data: temps, backgroundColor: '#f43f5e' },
+                        { label: 'Fires Nearby', data: fires, backgroundColor: '#f59e0b' },
+                        { label: 'Carbon (gCO₂)', data: carbons, backgroundColor: '#a78bfa' },
+                        { label: 'UHI Intensity', data: uhis, backgroundColor: '#fb923c' },
+                        { label: 'Risk Score', data: risks, backgroundColor: '#fbbf24' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#e2e8f0', font: { size: 10 } } } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+            document.getElementById('compareResult').innerHTML += '<div style="font-size:10px; color:#94a3b8; margin-top:4px;">Comparison chart shown above.</div>';
+        } catch(e) {
+            document.getElementById('compareResult').innerHTML = '⚠️ Error comparing cities.';
+        }
+    }
+
+    // ============================================================
+    // SEARCH CITY
+    // ============================================================
+    async function searchCity() {
+        const query = document.getElementById('cityInput').value.trim();
+        if (!query) return;
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                currentLat = lat; currentLon = lon;
+                currentCity = data[0].display_name.substring(0,30);
+                map.flyTo([lat, lon], 11);
+                document.getElementById('chartLocation').textContent = `(${currentCity})`;
+                await updateLocationInfo(lat, lon);
+                await showLocationPopup(lat, lon);
+                await updateWeatherForLocation(lat, lon);
+                await updateWeatherLayer(lat, lon);
+                await updateOceanLayer(lat, lon);
+                await updatePollenLayer(lat, lon);
+                const name = data[0].display_name.toLowerCase();
+                if (name.includes('karachi')) { updateUHILayer('Karachi'); updateRiskLayer('PK'); }
+                else if (name.includes('lahore')) { updateUHILayer('Lahore'); }
+                else if (name.includes('islamabad')) { updateUHILayer('Islamabad'); }
+                else if (name.includes('mumbai')) { updateUHILayer('Mumbai'); updateRiskLayer('IN'); }
+                else if (name.includes('london')) { updateRiskLayer('UK'); }
+                else if (name.includes('new york') || name.includes('washington')) { updateRiskLayer('US'); }
+                else if (name.includes('beijing') || name.includes('shanghai')) { updateRiskLayer('CN'); }
+                refreshAll();
+            } else alert('❌ City not found.');
+        } catch(e) { alert('⚠️ Search error: ' + e.message); }
+    }
+
+    // ============================================================
+    // ANALYTICS
+    // ============================================================
+    async function openAnalytics() {
+        document.getElementById('analyticsModal').classList.add('open');
+        try {
+            const res = await fetch('/api/analytics');
+            const data = await res.json();
+            document.getElementById('analyticsFires').textContent = data.total_fires || 0;
+            document.getElementById('analyticsAlerts').textContent = data.total_alerts || 0;
+            document.getElementById('analyticsTemp').textContent = data.avg_temperature || '--';
+            document.getElementById('analyticsTimestamp').textContent = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '--';
+            if (analyticsChartInstance) analyticsChartInstance.destroy();
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            analyticsChartInstance = new Chart(ctx, {
+                type:'bar',
+                data: {
+                    labels: ['Fires', 'Alerts', 'Avg Temp'],
+                    datasets: [{ label:'Global Stats', data: [data.total_fires || 0, data.total_alerts || 0, data.avg_temperature || 0], backgroundColor: ['#f43f5e','#f59e0b','#38bdf8'] }]
+                },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } }
+            });
+        } catch(e) {
+            alert('Analytics error');
+        }
+    }
+
+    function closeAnalytics() {
+        document.getElementById('analyticsModal').classList.remove('open');
+        if (analyticsChartInstance) { analyticsChartInstance.destroy(); analyticsChartInstance = null; }
+    }
+
+    // ============================================================
+    // SUBSCRIBE
+    // ============================================================
+    async function subscribeAlerts() {
+        const email = prompt('Enter your email to subscribe to alerts:');
+        if (!email) return;
+        try {
+            const res = await fetch(`/api/subscribe?email=${encodeURIComponent(email)}`, { method:'POST' });
+            const data = await res.json();
+            alert(`✅ ${data.status} (${data.email})`);
+        } catch(e) { alert('Subscription error'); }
+    }
+
+    // ============================================================
+    // CHATBOT
+    // ============================================================
+    function toggleChat() {
+        document.getElementById('chatBox').classList.toggle('open');
+    }
+
+    async function sendChat() {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+        if (!msg) return;
+        const chatBox = document.getElementById('chatMessages');
+        chatBox.innerHTML += `<div class="chat-msg user">${msg}</div>`;
+        input.value = '';
+        try {
+            const res = await fetch(`/api/chat?message=${encodeURIComponent(msg)}`);
+            const data = await res.json();
+            chatBox.innerHTML += `<div class="chat-msg bot">${data.reply}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch(e) {
+            chatBox.innerHTML += `<div class="chat-msg bot">⚠️ Error. Try again.</div>`;
+        }
+    }
+
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendChat();
+    });
+
+    // ============================================================
+    // LANGUAGE TOGGLE
+    // ============================================================
+    document.querySelectorAll('.lang-toggle button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentLang = this.dataset.lang;
+            document.getElementById('cityInput').placeholder = translations[currentLang].searchPlaceholder;
+            document.querySelector('.kpi-item:nth-child(1) .label').textContent = translations[currentLang].fires;
+            document.querySelector('.kpi-item:nth-child(2) .label').textContent = translations[currentLang].alerts;
+            document.querySelector('.kpi-item:nth-child(3) .label').textContent = translations[currentLang].avgTemp;
+            updateAlertsLayer();
+        });
+    });
+
+    // ============================================================
+    // ABOUT & LEARN
+    // ============================================================
+    function openAbout() { document.getElementById('aboutModal').classList.add('open'); }
+    function closeAbout() { document.getElementById('aboutModal').classList.remove('open'); }
+    function openLearn() { document.getElementById('learnModal').classList.add('open'); }
+    function closeLearn() { document.getElementById('learnModal').classList.remove('open'); }
+
+    // ============================================================
+    // WEBSOCKET
+    // ============================================================
+    function connectWS() {
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${protocol}//${location.host}/ws`);
+        ws.onmessage = (e) => {
+            try { const msg = JSON.parse(e.data); if (msg.type === 'update') refreshAll(); } catch (ex) {}
+        };
+        ws.onclose = () => setTimeout(connectWS, 5000);
+    }
+
+    // ============================================================
+    // PWA
+    // ============================================================
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('SW registered'))
+            .catch(() => console.log('SW registration failed'));
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    window.onload = function() {
+        initMap();
+        initChart();
+        refreshAll();
+        connectWS();
+        setInterval(refreshAll, 60000);
+
+        document.getElementById('searchBtn').addEventListener('click', searchCity);
+        document.getElementById('cityInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchCity(); });
+
+        document.querySelectorAll('.feature-toggles button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const layer = this.dataset.layer;
+                this.classList.toggle('active');
+                toggleLayer(layer);
+            });
+        });
+
+        fetchRiskAlerts();
+    };
+</script>
+</body>
+</html>
