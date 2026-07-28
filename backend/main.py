@@ -20,6 +20,9 @@ from typing import Optional, List, Dict, Any
 import logging
 import os
 from dotenv import load_dotenv
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()
 
@@ -230,19 +233,112 @@ async def get_historical(lat: float = Query(...), lon: float = Query(...),
     data = await fetch_historical(lat, lon, start_date.isoformat(), end_date.isoformat())
     return data
 
+
 # -------------------------------------------------------------------
 # Subscribe
 # -------------------------------------------------------------------
 subscribers = []
+subscribers = {}  # email -> country
+
+# ===================================================================
+# SEND EMAIL FUNCTION
+# ===================================================================
+async def send_alert_email(email: str, alert_type: str, city: str, country: str, severity: str, description: str):
+    """Send actual email notification using SMTP"""
+    sender_email = os.getenv("EMAIL_SENDER", "")
+    sender_password = os.getenv("EMAIL_PASSWORD", "")
+    
+    if not sender_email or not sender_password:
+        print(f"⚠️ Email credentials not set. Would send: {alert_type} to {email}")
+        return False
+    
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = email
+        msg['Subject'] = f"⚠️ Climate Alert: {alert_type} in {city}, {country}"
+        
+        body = f"""
+🌍 EcoPulse Climate Alert
+
+📍 Location: {city}, {country}
+⚠️ Alert Type: {alert_type}
+🔴 Severity: {severity.upper()}
+📝 Description: {description}
+
+🕐 Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
+
+💡 Action Required:
+• Stay informed through local news
+• Follow instructions from local authorities
+• Check EcoPulse dashboard for updates: https://ecopulse-1-b2lm.onrender.com/
+
+---
+🌿 EcoPulse – Global Climate Intelligence Platform
+"Know the climate. Act on it."
+"""
+        
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Send email
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+        
+        print(f"✅ Email sent to {email}")
+        return True
+    except Exception as e:
+        print(f"❌ Email error: {e}")
+        return False
+    
 @app.post("/api/subscribe")
-async def subscribe(email: str = Query(...)):
-    if email not in subscribers:
-        subscribers.append(email)
-    return {"status": "subscribed", "email": email}
+async def subscribe(email: str = Query(...), country: str = Query("Pakistan")):
+    subscribers[email] = country  
+    return {"status": "subscribed", "email": email, "country": country}
 @app.get("/api/subscribers")
 async def list_subscribers():
     return {"subscribers": subscribers}
 
+# ===================================================================
+# TRIGGER ALERTS (Send emails to all subscribers)
+# ===================================================================
+@app.post("/api/trigger-alerts")
+async def trigger_alerts():
+    """Trigger alerts – send emails to all subscribers based on their country"""
+    alerts = await fetch_alerts()
+    if not alerts:
+        return {"status": "no_alerts", "message": "No active alerts to send"}
+    
+    # Group alerts by country
+    country_alerts = {}
+    for alert in alerts:
+        country = alert.get("country", "Unknown")
+        if country not in country_alerts:
+            country_alerts[country] = []
+        country_alerts[country].append(alert)
+    
+    # Send emails to subscribers
+    sent_count = 0
+    for email, country in subscribers.items():
+        if country in country_alerts:
+            for alert in country_alerts[country]:
+                await send_alert_email(
+                    email,
+                    alert['type'],
+                    alert.get('city', 'Unknown'),
+                    country,
+                    alert['severity'],
+                    alert.get('description', 'Weather alert')
+                )
+                sent_count += 1
+                await asyncio.sleep(1)  # Rate limit (1 email per second)
+    
+    return {
+        "status": "sent", 
+        "count": sent_count,
+        "message": f"Sent {sent_count} alerts to subscribers"
+    }
 # -------------------------------------------------------------------
 # Chatbot
 # -------------------------------------------------------------------

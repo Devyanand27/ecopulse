@@ -1,11 +1,7 @@
 """
 COMPLETE Real‑time Data Fetchers – All 10 Features
-- Uses free Open‑Meteo APIs (no key) for Weather, Marine, Air Quality, Warnings, Historical
-- NASA FIRMS (requires free token) for Fires
-- ElectricityMap (requires free token) for Carbon Intensity
-- Derived calculations for Turbulence (from wind data) and UHI (urban/rural comparison)
-- Composite Risk Score from other fetchers
-- Every function has a real API call + mock fallback (never fails)
+- Open-Meteo (no key), NASA FIRMS, ElectricityMap
+- All functions have real API + mock fallback
 """
 import httpx
 import asyncio
@@ -16,18 +12,17 @@ from typing import Optional, List, Tuple
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env
+load_dotenv()
 
 # -------------------------------------------------------------------
 # API KEYS from environment
 NASA_FIRMS_TOKEN = os.getenv("NASA_FIRMS_TOKEN", "demo")
 ELECTRICITY_MAP_TOKEN = os.getenv("ELECTRICITY_MAP_TOKEN", "demo")
 
-# -------------------------------------------------------------------
-# 1. WEATHER (Open‑Meteo Forecast – no key)
-# -------------------------------------------------------------------
+# ===================================================================
+# 1. WEATHER (Open‑Meteo)
+# ===================================================================
 async def fetch_weather(lat: float, lon: float) -> dict:
-    """Current + 7‑day forecast. Real API + mock fallback."""
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": lat,
@@ -66,11 +61,10 @@ def _mock_weather(lat, lon):
         }
     }
 
-# -------------------------------------------------------------------
-# 2. FIRES (NASA FIRMS – requires token)
-# -------------------------------------------------------------------
+# ===================================================================
+# 2. FIRES (NASA FIRMS)
+# ===================================================================
 async def fetch_fires(bbox: Tuple[float, float, float, float] = None) -> List[dict]:
-    """Active fires from NASA FIRMS. Real API + mock fallback."""
     if bbox is None:
         bbox = (-180, -90, 180, 90)
     url = "https://firms.modaps.eosdis.nasa.gov/api/area/csv/"
@@ -83,7 +77,7 @@ async def fetch_fires(bbox: Tuple[float, float, float, float] = None) -> List[di
         async with httpx.AsyncClient(timeout=15) as client:
             resp = await client.get(url, params=params)
             resp.raise_for_status()
-            lines = resp.text.strip().split("\n")[1:]  # skip header
+            lines = resp.text.strip().split("\n")[1:]
             fires = []
             for line in lines:
                 parts = line.split(",")
@@ -108,11 +102,10 @@ def _mock_fires():
         "type": "fire"
     } for _ in range(random.randint(5, 25))]
 
-# -------------------------------------------------------------------
-# 3. OCEAN / MARINE HEATWAVES (Open‑Meteo Marine – no key)
-# -------------------------------------------------------------------
+# ===================================================================
+# 3. OCEAN
+# ===================================================================
 async def fetch_ocean_temp(lat: float, lon: float) -> dict:
-    """Sea surface temperature (SST) and anomaly. Real + mock."""
     url = "https://marine-api.open-meteo.com/v1/marine"
     params = {
         "latitude": lat,
@@ -142,11 +135,10 @@ def _mock_ocean(lat, lon):
     coral_risk = "high" if anomaly > 1.5 else "medium" if anomaly > 0.8 else "low"
     return {"lat": lat, "lon": lon, "sst": sst, "anomaly": anomaly, "coral_risk": coral_risk}
 
-# -------------------------------------------------------------------
-# 4. CARBON INTENSITY (ElectricityMap – requires token)
-# -------------------------------------------------------------------
+# ===================================================================
+# 4. CARBON INTENSITY
+# ===================================================================
 async def fetch_carbon_intensity(country_code: str = "US") -> dict:
-    """National grid carbon intensity. Real + mock."""
     url = f"https://api.electricitymap.org/v3/carbon-intensity/latest?zone={country_code}"
     headers = {"auth-token": ELECTRICITY_MAP_TOKEN}
     try:
@@ -171,11 +163,10 @@ def _mock_carbon(country_code):
         "fossil_percent": random.randint(20, 90)
     }
 
-# -------------------------------------------------------------------
-# 5. TURBULENCE (Derived from Open‑Meteo wind data – no key)
-# -------------------------------------------------------------------
+# ===================================================================
+# 5. TURBULENCE
+# ===================================================================
 async def fetch_turbulence(bbox: Tuple[float, float, float, float] = None) -> List[dict]:
-    """CAT index derived from wind speed and shear. Real wind data + mock."""
     if bbox is None:
         bbox = (-180, -90, 180, 90)
     points = []
@@ -210,11 +201,10 @@ async def fetch_turbulence(bbox: Tuple[float, float, float, float] = None) -> Li
             points.append({"lat": lat, "lon": lon, "risk": random.choice(["low", "moderate", "high", "severe"])})
     return points
 
-# -------------------------------------------------------------------
-# 6. POLLEN (Open‑Meteo Air Quality – no key)
-# -------------------------------------------------------------------
+# ===================================================================
+# 6. POLLEN
+# ===================================================================
 async def fetch_pollen(lat: float, lon: float) -> dict:
-    """Pollen concentrations from Open‑Meteo Air Quality API."""
     url = "https://air-quality-api.open-meteo.com/v1/air-quality"
     params = {
         "latitude": lat,
@@ -248,21 +238,19 @@ def _mock_pollen(lat, lon):
         "overall_risk": random.choice(["low", "moderate", "high"])
     }
 
-# -------------------------------------------------------------------
-# 7. URBAN HEAT ISLAND (Derived – no direct API, uses weather comparison)
-# -------------------------------------------------------------------
+# ===================================================================
+# 7. URBAN HEAT ISLAND (UHI)
+# ===================================================================
 async def fetch_uhi(city: str) -> dict:
-    """UHI intensity by comparing urban/rural weather."""
     coords = {
-        "Karachi": (24.86, 67.01),
-        "Lahore": (31.52, 74.36),
-        "Islamabad": (33.68, 73.05),
-        "Mumbai": (19.08, 72.88),
-        "Delhi": (28.61, 77.23),
-        "New York": (40.71, -74.01),
-        "London": (51.51, -0.13),
-        "Tokyo": (35.68, 139.76),
-        "Sydney": (-33.87, 151.21)
+        "Karachi": (24.86, 67.01), "Lahore": (31.52, 74.36),
+        "Islamabad": (33.68, 73.05), "Mumbai": (19.08, 72.88),
+        "Delhi": (28.61, 77.23), "London": (51.51, -0.13),
+        "New York": (40.71, -74.01), "Tokyo": (35.68, 139.76),
+        "Sydney": (-33.87, 151.21), "Cape Town": (-33.92, 18.42),
+        "Tehran": (35.68, 51.38), "Dubai": (25.20, 55.27),
+        "Singapore": (1.35, 103.82), "Hong Kong": (22.31, 114.16),
+        "Bangkok": (13.75, 100.50), "Jakarta": (-6.20, 106.81)
     }
     urban_lat, urban_lon = coords.get(city, (24.86, 67.01))
     rural_lat = urban_lat + random.uniform(0.15, 0.3)
@@ -299,19 +287,17 @@ def _mock_uhi(city):
         "hotspots": [{"lat": random.uniform(-90, 90), "lon": random.uniform(-180, 180)} for _ in range(4)]
     }
 
-# -------------------------------------------------------------------
-# 8. SOVEREIGN RISK SCORE (Composite – uses other fetchers)
-# -------------------------------------------------------------------
+# ===================================================================
+# 8. SOVEREIGN RISK SCORE
+# ===================================================================
 async def fetch_risk_score(country_code: str = "PK") -> dict:
-    """Composite risk score using multiple data sources."""
     country_map = {
-        "PK": ("Pakistan", 30.0, 70.0),
-        "US": ("United States", 40.0, -100.0),
-        "IN": ("India", 20.0, 77.0),
-        "CN": ("China", 35.0, 105.0),
-        "UK": ("United Kingdom", 55.0, -3.0),
-        "BR": ("Brazil", -15.0, -55.0),
-        "AU": ("Australia", -25.0, 135.0)
+        "PK": ("Pakistan", 30.0, 70.0), "US": ("United States", 40.0, -100.0),
+        "IN": ("India", 20.0, 77.0), "CN": ("China", 35.0, 105.0),
+        "UK": ("United Kingdom", 55.0, -3.0), "BR": ("Brazil", -15.0, -55.0),
+        "AU": ("Australia", -25.0, 135.0), "IR": ("Iran", 32.0, 53.0),
+        "AE": ("UAE", 24.0, 54.0), "SG": ("Singapore", 1.35, 103.82),
+        "TH": ("Thailand", 15.0, 101.0), "ID": ("Indonesia", -5.0, 120.0)
     }
     name, lat, lon = country_map.get(country_code, ("Unknown", 30, 70))
 
@@ -362,11 +348,10 @@ def _mock_risk(country_code):
         }
     }
 
-# -------------------------------------------------------------------
-# 9. EXTREME ALERTS (Open‑Meteo Warnings – no key)
-# -------------------------------------------------------------------
+# ===================================================================
+# 9. EXTREME ALERTS (Real-time from Open-Meteo)
+# ===================================================================
 async def fetch_alerts(bbox: Tuple[float, float, float, float] = None) -> List[dict]:
-    """Real‑time weather warnings from Open‑Meteo."""
     if bbox is None:
         bbox = (-180, -90, 180, 90)
     url = "https://api.open-meteo.com/v1/warnings"
@@ -391,27 +376,31 @@ async def fetch_alerts(bbox: Tuple[float, float, float, float] = None) -> List[d
                     "lat": w.get("latitude", random.uniform(bbox[1], bbox[3])),
                     "lon": w.get("longitude", random.uniform(bbox[0], bbox[2])),
                     "severity": severity,
-                    "time": w.get("start", datetime.utcnow().isoformat())
+                    "time": w.get("start", datetime.utcnow().isoformat()),
+                    "country": w.get("country", "Unknown"),
+                    "description": w.get("description", "Weather alert")
                 })
             return alerts
     except Exception:
         return _mock_alerts()
 
 def _mock_alerts():
-    types = ["microburst", "flash flood", "dust storm", "tornado", "thunderstorm", "heatwave"]
+    types = ["Microburst", "Flash Flood", "Dust Storm", "Tornado", "Thunderstorm", "Heatwave", "Cyclone", "Tsunami Warning"]
+    countries = ["Pakistan", "India", "USA", "UK", "Australia", "UAE", "Singapore", "Iran", "China", "Japan"]
     return [{
         "type": random.choice(types),
         "lat": random.uniform(-60, 70),
         "lon": random.uniform(-180, 180),
         "severity": random.choice(["warning", "watch", "advisory"]),
-        "time": datetime.utcnow().isoformat()
-    } for _ in range(random.randint(0, 5))]
+        "time": datetime.utcnow().isoformat(),
+        "country": random.choice(countries),
+        "description": f"{random.choice(types)} warning in {random.choice(countries)}"
+    } for _ in range(random.randint(0, 8))]
 
-# -------------------------------------------------------------------
-# 10. HISTORICAL DATA (Open‑Meteo Archive – no key)
-# -------------------------------------------------------------------
+# ===================================================================
+# 10. HISTORICAL DATA
+# ===================================================================
 async def fetch_historical(lat: float, lon: float, start_date: str, end_date: str) -> dict:
-    """Historical daily weather for time slider playback."""
     url = "https://archive-api.open-meteo.com/v1/archive"
     params = {
         "latitude": lat,
@@ -438,3 +427,81 @@ async def fetch_historical(lat: float, lon: float, start_date: str, end_date: st
                 "precipitation_sum": [round(random.uniform(0, 20), 1) for _ in range(days)]
             }
         }
+
+# ===================================================================
+# 11. GLOBAL RISK ALERTS (All Cities)
+# ===================================================================
+ALL_CITIES = [
+    {"name": "Karachi", "lat": 24.86, "lon": 67.01, "country": "Pakistan"},
+    {"name": "Lahore", "lat": 31.52, "lon": 74.36, "country": "Pakistan"},
+    {"name": "Islamabad", "lat": 33.68, "lon": 73.05, "country": "Pakistan"},
+    {"name": "Mumbai", "lat": 19.08, "lon": 72.88, "country": "India"},
+    {"name": "Delhi", "lat": 28.61, "lon": 77.23, "country": "India"},
+    {"name": "London", "lat": 51.51, "lon": -0.13, "country": "UK"},
+    {"name": "New York", "lat": 40.71, "lon": -74.01, "country": "USA"},
+    {"name": "Tokyo", "lat": 35.68, "lon": 139.76, "country": "Japan"},
+    {"name": "Sydney", "lat": -33.87, "lon": 151.21, "country": "Australia"},
+    {"name": "Cape Town", "lat": -33.92, "lon": 18.42, "country": "South Africa"},
+    {"name": "Tehran", "lat": 35.68, "lon": 51.38, "country": "Iran"},
+    {"name": "Dubai", "lat": 25.20, "lon": 55.27, "country": "UAE"},
+    {"name": "Singapore", "lat": 1.35, "lon": 103.82, "country": "Singapore"},
+    {"name": "Hong Kong", "lat": 22.31, "lon": 114.16, "country": "China"},
+    {"name": "Bangkok", "lat": 13.75, "lon": 100.50, "country": "Thailand"},
+    {"name": "Jakarta", "lat": -6.20, "lon": 106.81, "country": "Indonesia"},
+]
+
+async def fetch_risk_alerts():
+    """Compute risk scores for ALL cities and return alerts with severity levels"""
+    results = []
+    for city in ALL_CITIES:
+        try:
+            w = await fetch_weather(city["lat"], city["lon"])
+            if not w or not w.get('current'):
+                continue
+            temp = w['current']['temperature_2m']
+            humidity = w['current']['relative_humidity_2m']
+            wind = w['current']['wind_speed_10m']
+            rain_prob = w.get('daily', {}).get('precipitation_probability_max', [0])[0] or 0
+
+            # Calculate risk scores (0-3 for fire, 0-1 for flood)
+            fire_risk = 0
+            if temp > 30: fire_risk += 1
+            if humidity < 20: fire_risk += 1
+            if wind > 20: fire_risk += 1
+
+            flood_risk = 1 if rain_prob > 80 else 0
+
+            risk = fire_risk + flood_risk
+            if risk > 0:
+                # Determine severity
+                if risk >= 3:
+                    severity = "High"
+                    severity_icon = "🔴"
+                elif risk >= 2:
+                    severity = "Medium"
+                    severity_icon = "🟡"
+                else:
+                    severity = "Low"
+                    severity_icon = "🟢"
+
+                results.append({
+                    "name": city["name"],
+                    "lat": city["lat"],
+                    "lon": city["lon"],
+                    "country": city["country"],
+                    "fire_risk": fire_risk,
+                    "flood_risk": flood_risk,
+                    "risk": risk,
+                    "severity": severity,
+                    "severity_icon": severity_icon,
+                    "temp": temp,
+                    "humidity": humidity,
+                    "wind": wind,
+                    "rain_prob": rain_prob,
+                    "risk_type": "🔥 Fire" if fire_risk > flood_risk else "🌊 Flood" if flood_risk > fire_risk else "🔥🌊 Mixed"
+                })
+        except Exception:
+            continue
+    # Sort by risk (highest first)
+    results.sort(key=lambda x: x["risk"], reverse=True)
+    return results
