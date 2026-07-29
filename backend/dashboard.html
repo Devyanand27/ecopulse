@@ -1100,84 +1100,111 @@
         document.getElementById('compareModal').classList.remove('open');
     }
 
-    async function runCompareCoords() {
-        const cities = [];
-        for (let i = 1; i <= 3; i++) {
-            const data = window.selectedCities[i];
-            if (data && data.name && data.lat && data.lon) {
-                cities.push(data);
+async function runCompareCoords() {
+    const cities = [];
+    for (let i = 1; i <= 3; i++) {
+        const data = window.selectedCities[i];
+        if (data && data.name && data.lat && data.lon) {
+            let cityName = data.name;
+            if (cityName.includes(',')) {
+                cityName = cityName.split(',')[0].trim();
             }
-        }
-        if (cities.length < 2) {
-            document.getElementById('compareResultsContainer').innerHTML = '<p style="color:#f59e0b;">Please select at least 2 cities.</p>';
-            return;
-        }
-
-        document.getElementById('compareResultsContainer').innerHTML = '<p style="color:#94a3b8;">Loading...</p>';
-
-        try {
-            const res = await fetch('/api/compare-coords', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cities: cities })
+            cities.push({
+                name: cityName,
+                lat: parseFloat(data.lat),
+                lon: parseFloat(data.lon)
             });
-            const data = await res.json();
-            const results = data.comparison || [];
-            if (results.length === 0) {
-                document.getElementById('compareResultsContainer').innerHTML = '<p style="color:#f43f5e;">No data available.</p>';
-                return;
-            }
-
-            // Build table
-            let tableHtml = `
-                <table class="compare-table">
-                    <thead>
-                        <tr>
-                            <th>Metric</th>
-                            ${results.map(c => `<th style="text-align:center;">${c.city}</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>🌡️ Temperature</td>${results.map(c => `<td>${c.temperature}°C</td>`).join('')}</tr>
-                        <tr><td>🔥 Fires Nearby</td>${results.map(c => `<td>${c.fires_nearby}</td>`).join('')}</tr>
-                        <tr><td>⚡ Carbon Intensity</td>${results.map(c => `<td>${c.carbon_intensity} gCO₂/kWh</td>`).join('')}</tr>
-                        <tr><td>🏙️ UHI Intensity</td>${results.map(c => `<td>${c.uhi_intensity}°C</td>`).join('')}</tr>
-                        <tr><td>🛡️ Risk Score</td>${results.map(c => `<td>${c.risk_score}/100</td>`).join('')}</tr>
-                    </tbody>
-                </table>
-            `;
-            // Add bar chart
-            const ctx = document.createElement('canvas');
-            ctx.id = 'compareChartCanvas';
-            ctx.style.height = '200px';
-            document.getElementById('compareResultsContainer').innerHTML = tableHtml + '<div style="margin-top:16px;"><canvas id="compareChartCanvas" style="height:200px;"></canvas></div>';
-            const chartCtx = document.getElementById('compareChartCanvas').getContext('2d');
-            new Chart(chartCtx, {
-                type: 'bar',
-                data: {
-                    labels: results.map(c => c.city),
-                    datasets: [
-                        { label: 'Temp (°C)', data: results.map(c => c.temperature), backgroundColor: '#f43f5e' },
-                        { label: 'Carbon (gCO₂)', data: results.map(c => c.carbon_intensity), backgroundColor: '#a78bfa' },
-                        { label: 'Risk Score', data: results.map(c => c.risk_score), backgroundColor: '#fbbf24' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#e2e8f0', font: { size: 10 } } } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8', font: { size: 10 } } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 10 } } }
-                    }
-                }
-            });
-        } catch(e) {
-            document.getElementById('compareResultsContainer').innerHTML = '<p style="color:#f43f5e;">⚠️ Error comparing cities.</p>';
-            console.error(e);
         }
     }
 
+    if (cities.length < 2) {
+        document.getElementById('compareResultsContainer').innerHTML = 
+            '<p style="color:#f59e0b;">⚠️ Please select at least 2 cities from the autocomplete dropdown.</p>';
+        return;
+    }
+
+    document.getElementById('compareResultsContainer').innerHTML = 
+        '<p style="color:#94a3b8;">⏳ Loading data for ' + cities.map(c => c.name).join(', ') + '...</p>';
+
+    try {
+        // ✅ Send the array directly, NOT wrapped in an object
+        const response = await fetch('/api/compare-coords', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(cities)   // <-- FIXED: direct array
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error:', errorText);
+            throw new Error(`Server returned ${response.status}: ${errorText || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+        const results = data.comparison || [];
+
+        if (results.length === 0) {
+            document.getElementById('compareResultsContainer').innerHTML = 
+                '<p style="color:#f43f5e;">❌ No data available for the selected cities. Please try different cities.</p>';
+            return;
+        }
+
+        // Build table
+        let tableHtml = `
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        ${results.map(c => `<th style="text-align:center;">${c.city}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>🌡️ Temperature</td>${results.map(c => `<td>${c.temperature}°C</td>`).join('')}</tr>
+                    <tr><td>🔥 Fires Nearby</td>${results.map(c => `<td>${c.fires_nearby}</td>`).join('')}</tr>
+                    <tr><td>⚡ Carbon Intensity</td>${results.map(c => `<td>${c.carbon_intensity} gCO₂/kWh</td>`).join('')}</tr>
+                    <tr><td>🏙️ UHI Intensity</td>${results.map(c => `<td>${c.uhi_intensity}°C</td>`).join('')}</tr>
+                    <tr><td>🛡️ Risk Score</td>${results.map(c => `<td>${c.risk_score}/100</td>`).join('')}</tr>
+                </tbody>
+            </table>
+        `;
+
+        const container = document.getElementById('compareResultsContainer');
+        container.innerHTML = tableHtml + '<div style="margin-top:16px;"><canvas id="compareChartCanvas" style="height:200px;"></canvas></div>';
+
+        const chartCtx = document.getElementById('compareChartCanvas').getContext('2d');
+        new Chart(chartCtx, {
+            type: 'bar',
+            data: {
+                labels: results.map(c => c.city),
+                datasets: [
+                    { label: 'Temp (°C)', data: results.map(c => c.temperature), backgroundColor: '#f43f5e' },
+                    { label: 'Carbon (gCO₂)', data: results.map(c => c.carbon_intensity), backgroundColor: '#a78bfa' },
+                    { label: 'Risk Score', data: results.map(c => c.risk_score), backgroundColor: '#fbbf24' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#e2e8f0', font: { size: 10 } }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: '#94a3b8', font: { size: 10 } } },
+                    y: { ticks: { color: '#94a3b8', font: { size: 10 } } }
+                }
+            }
+        });
+
+         } catch(e) {
+        console.error('Compare error:', e);
+        document.getElementById('compareResultsContainer').innerHTML = 
+            `<p style="color:#f43f5e;">⚠️ Error: ${e.message}</p>`;
+        }
+    }
     // ============================================================
     // SEARCH CITY
     // ============================================================

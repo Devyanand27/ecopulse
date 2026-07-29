@@ -402,27 +402,39 @@ async def get_country_code(lat: float, lon: float) -> str:
             resp.raise_for_status()
             data = resp.json()
             address = data.get("address", {})
-            # Try to get country code from address
+            
             if "country_code" in address:
                 country_code = address["country_code"].upper()
             else:
-                # Fallback to country name mapping
                 country = address.get("country", "")
-                if "Pakistan" in country:
-                    country_code = "PK"
-                elif "India" in country:
-                    country_code = "IN"
-                elif "United States" in country:
-                    country_code = "US"
-                elif "United Kingdom" in country:
-                    country_code = "UK"
-                else:
-                    country_code = "US"
+                country_map = {
+                    "Pakistan": "PK", "India": "IN", "United States": "US",
+                    "United Kingdom": "UK", "Australia": "AU", "Canada": "CA",
+                    "Germany": "DE", "France": "FR", "Japan": "JP",
+                    "China": "CN", "Brazil": "BR", "South Africa": "ZA",
+                    "UAE": "AE", "Singapore": "SG", "Malaysia": "MY",
+                    "Indonesia": "ID", "Thailand": "TH", "Vietnam": "VN",
+                    "Philippines": "PH", "Sri Lanka": "LK", "Bangladesh": "BD",
+                    "Nepal": "NP", "Afghanistan": "AF", "Iran": "IR",
+                    "Turkey": "TR", "Egypt": "EG", "Nigeria": "NG",
+                    "Kenya": "KE", "Mexico": "MX", "Argentina": "AR"
+                }
+                country_code = country_map.get(country, "US")
+            
             country_cache[cache_key] = country_code
             return country_code
+            
     except Exception as e:
-        logger.error(f"Reverse geocoding error: {e}")
-        return "US"
+        logger.warning(f"Reverse geocoding error: {e}")
+        # Return default country code based on region
+        if 20 <= lat <= 40 and 60 <= lon <= 80:
+            return "PK"  # South Asia
+        elif 30 <= lat <= 45 and -10 <= lon <= 40:
+            return "UK"  # Europe
+        elif 25 <= lat <= 50 and -130 <= lon <= -60:
+            return "US"  # North America
+        else:
+            return "US"
 
 # ===================================================================
 # DYNAMIC CITY METRICS (Any city in the world)
@@ -492,23 +504,40 @@ async def compare_coords(cities: List[Dict[str, Any]] = Body(...)):
     Compare metrics for user-selected cities provided with lat/lon.
     Input: [{"name": "Karachi", "lat": 24.86, "lon": 67.01}, ...]
     """
+    # Validate input
+    if not cities or len(cities) == 0:
+        raise HTTPException(status_code=400, detail="No cities provided")
+    
     if len(cities) > 5:
         raise HTTPException(status_code=400, detail="Maximum 5 cities allowed")
-
+    
     results = []
     for city in cities:
-        name = city.get("name", f"{city['lat']:.2f},{city['lon']:.2f}")
+        name = city.get("name", f"{city.get('lat', 0):.2f},{city.get('lon', 0):.2f}")
         lat = city.get("lat")
         lon = city.get("lon")
+        
+        # Validate lat/lon
         if lat is None or lon is None:
+            logger.warning(f"Skipping city {name} because missing lat/lon")
             continue
-
+        
+        try:
+            # Convert to float if they are strings
+            lat = float(lat)
+            lon = float(lon)
+        except (ValueError, TypeError):
+            logger.warning(f"Skipping city {name} because lat/lon are not numbers")
+            continue
+        
         # Get country code via reverse geocoding (cached)
         country_code = await get_country_code(lat, lon)
-
         metrics = await get_city_metrics_by_coords(name, lat, lon, country_code)
         results.append(metrics)
-
+    
+    if len(results) == 0:
+        raise HTTPException(status_code=404, detail="No valid cities could be processed")
+    
     return {"comparison": results, "timestamp": datetime.utcnow().isoformat()}
 
 # ===================================================================
