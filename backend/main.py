@@ -38,7 +38,7 @@ from pydantic import BaseModel, EmailStr, Field, validator
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",
-    handlers=[sys.stdout]
+    handlers=[logging.StreamHandler(sys.stdout)] 
 )
 logger = logging.getLogger("EcoPulse-Enterprise")
 
