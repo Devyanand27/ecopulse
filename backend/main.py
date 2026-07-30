@@ -184,7 +184,7 @@ NAVBAR_HTML = """
     </div>
     <div style="display:flex; gap:16px;">
         <a href="/" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">🗺️ Live Map</a>
-        <a href="/compare" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">📊 Cities Compare</a>
+        <a href="compare.html" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">📊 Cities Compare</a>
         <a href="/about" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">📖 Story & Learn</a>
         <a href="/docs" target="_blank" style="color:#38bdf8; text-decoration:none; font-size:0.9rem; font-weight:600;">⚡ API Portal</a>
     </div>
