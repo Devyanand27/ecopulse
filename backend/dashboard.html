@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EcoPulse · Global Climate Intelligence Platform</title>
+    <title>EcoPulse · Global Climate Intelligence & Planetary Monitoring Engine</title>
 
-    <!-- Leaflet CSS & JS -->
+    <!-- Leaflet CSS & JS Engine -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-heat/0.2.0/leaflet-heat.js"></script>
@@ -13,454 +13,621 @@
     <!-- Chart.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <!-- FontAwesome & Google Fonts -->
+    <!-- FontAwesome Vector Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Inter Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
     <style>
-        /* CSS Reset & Global Styling */
+        /* ==========================================================================
+           GLOBAL CSS RESET & DESIGN SYSTEM
+           ========================================================================== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
-        body { background:#0b0f19; color:#f8fafc; overflow:hidden; height:100vh; width:100vw; }
         
-        #app-layout { display:flex; height:100vh; width:100vw; position:relative; }
-        
-        /* Sidebar Navigation & Control Panel */
-        #sidebar {
-            width: 440px;
-            min-width: 440px;
-            height: 100vh;
-            background: rgba(11, 15, 25, 0.92);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 2000;
-            overflow-y: auto;
+        :root {
+            --bg-dark: #0b0f19;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-green: #10b981;
+            --accent-green-hover: #34d399;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #818cf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
-        .brand-header {
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #app-viewport {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* ==========================================================================
+           SIDEBAR CONTROL PANEL
+           ========================================================================== */
+        #sidebar-panel {
+            width: 450px;
+            min-width: 450px;
+            height: 100vh;
+            background: rgba(11, 15, 25, 0.94);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            z-index: 2000;
+            overflow-y: auto;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-header-box {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-bottom: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand-logo-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-badge {
+            font-size: 10px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--accent-green);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .search-box-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input-field {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-field:focus {
+            border-color: var(--accent-green);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .location-tag-display {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid-3col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .kpi-card-box {
+            background: var(--panel-bg);
+            border-radius: 14px;
+            padding: 12px;
+            border-left: 3px solid var(--accent-green);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .kpi-title-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .kpi-metric-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+
+        /* Glass Cards */
+        .glass-panel-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .btn-action {
+            background: var(--accent-green);
+            color: #0b0f19;
+            font-weight: 700;
+            border: none;
+            padding: 11px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-action:hover {
+            background: var(--accent-green-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-purple {
+            background: var(--accent-purple);
+            color: #fff;
+        }
+
+        .btn-purple:hover {
+            background: #a5b4fc;
+            box-shadow: 0 5px 15px rgba(129, 140, 248, 0.3);
+        }
+
+        /* ==========================================================================
+           MAIN MAP CONTAINER
+           ========================================================================== */
+        #map-container {
+            flex: 1;
+            height: 100vh;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+        }
+
+        .floating-controls-stack {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .floating-icon-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: rgba(11, 15, 25, 0.9);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            backdrop-filter: blur(12px);
+            transition: all 0.2s ease;
+        }
+
+        .floating-icon-btn:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            transform: scale(1.05);
+        }
+
+        /* Floating Legend Box */
+        .legend-popup-panel {
+            position: absolute;
+            top: 90px;
+            right: 24px;
+            z-index: 1001;
+            background: rgba(11, 15, 25, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 18px;
+            width: 240px;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .legend-popup-panel.active { display: block; }
+
+        /* Time Slider Bar */
+        .time-slider-floating-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(11, 15, 25, 0.92);
+            border: 1px solid var(--border-color);
+            padding: 14px 28px;
+            border-radius: 40px;
+            display: none;
+            align-items: center;
+            gap: 18px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        /* ==========================================================================
+           MODAL OVERLAYS
+           ========================================================================== */
+        .modal-overlay-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay-bg.open { display: flex; }
+
+        .modal-content-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 950px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .btn-modal-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        .btn-modal-close:hover { color: var(--text-main); }
+
+        /* Autocomplete Suggestions Box */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 3000;
+            margin-top: 6px;
+            display: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .autocomplete-row-item {
+            padding: 12px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .autocomplete-row-item:hover {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
+
+        /* Matrix Table */
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .matrix-table th, .matrix-table td {
+            padding: 12px 16px;
+            text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .brand-title { font-size:22px; font-weight:800; color:#10b981; display:flex; align-items:center; gap:10px; }
-        .version-badge { font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:12px; border:1px solid #10b981; }
-
-        .search-container { position:relative; width:100%; }
-        .search-input {
-            width:100%;
-            padding:12px 16px;
-            border-radius:30px;
-            background:rgba(255,255,255,0.05);
-            border:1px solid rgba(255,255,255,0.12);
-            color:#fff;
-            font-size:13px;
-            outline:none;
-            transition:all 0.3s ease;
-        }
-        .search-input:focus { border-color:#10b981; background:rgba(255,255,255,0.08); }
-
-        .kpi-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-        .kpi-card {
-            background:rgba(15, 23, 42, 0.6);
-            border-radius:12px;
-            padding:10px;
-            border-left:3px solid #10b981;
-            text-align:center;
-            border-top:1px solid rgba(255,255,255,0.04);
-        }
-        .kpi-label { font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:600; }
-        .kpi-value { font-size:20px; font-weight:800; color:#fff; margin-top:2px; }
-
-        .glass-card {
-            background:rgba(15, 23, 42, 0.6);
-            backdrop-filter:blur(10px);
-            border:1px solid rgba(255,255,255,0.08);
-            border-radius:16px;
-            padding:14px;
+            font-size: 13px;
         }
 
-        .btn-primary {
-            background:#10b981;
-            color:#0b0f19;
-            font-weight:700;
-            border:none;
-            padding:10px 16px;
-            border-radius:10px;
-            cursor:pointer;
-            font-size:12px;
-            transition:all 0.2s ease;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            gap:6px;
+        .matrix-table th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-weight: 600;
         }
-        .btn-primary:hover { background:#34d399; transform:translateY(-1px); }
-        .btn-indigo { background:#6366f1; color:#fff; }
-        .btn-indigo:hover { background:#818cf8; }
-
-        /* Map Section */
-        #map-wrapper { flex:1; height:100vh; position:relative; }
-        #map { width:100%; height:100%; background:#0b0f19; }
-
-        .map-floating-controls {
-            position:absolute;
-            top:20px;
-            right:20px;
-            z-index:1000;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-        }
-        .icon-btn {
-            width:44px;
-            height:44px;
-            border-radius:12px;
-            background:rgba(11,15,25,0.85);
-            border:1px solid rgba(255,255,255,0.12);
-            color:#fff;
-            cursor:pointer;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:16px;
-            backdrop-filter:blur(8px);
-        }
-        .icon-btn:hover { border-color:#10b981; color:#10b981; }
-
-        /* Legend Panel */
-        .legend-floating-panel {
-            position:absolute;
-            top:80px;
-            right:20px;
-            z-index:1001;
-            background:rgba(11,15,25,0.92);
-            border:1px solid rgba(255,255,255,0.1);
-            border-radius:16px;
-            padding:16px;
-            width:220px;
-            display:none;
-        }
-        .legend-floating-panel.active { display:block; }
-
-        /* Time Slider Container */
-        .time-slider-bar {
-            position:absolute;
-            bottom:30px;
-            left:50%;
-            transform:translateX(-50%);
-            z-index:1000;
-            background:rgba(11,15,25,0.9);
-            border:1px solid rgba(255,255,255,0.1);
-            padding:12px 24px;
-            border-radius:40px;
-            display:none;
-            align-items:center;
-            gap:16px;
-            backdrop-filter:blur(12px);
-        }
-
-        /* Modal Overlays */
-        .modal-overlay {
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.75);
-            backdrop-filter:blur(6px);
-            z-index:9999;
-            display:none;
-            align-items:center;
-            justify-content:center;
-            padding:20px;
-        }
-        .modal-overlay.open { display:flex; }
-        .modal-body {
-            background:#0b0f19;
-            border:1px solid rgba(255,255,255,0.12);
-            border-radius:24px;
-            width:100%;
-            max-width:900px;
-            max-height:88vh;
-            overflow-y:auto;
-            padding:28px;
-            position:relative;
-        }
-        .close-modal { position:absolute; top:20px; right:20px; background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer; }
-        .close-modal:hover { color:#fff; }
-
-        /* Autocomplete List */
-        .autocomplete-box {
-            position:absolute;
-            top:100%;
-            left:0;
-            width:100%;
-            background:#0f172a;
-            border:1px solid #334155;
-            border-radius:12px;
-            max-height:180px;
-            overflow-y:auto;
-            z-index:3000;
-            margin-top:4px;
-            display:none;
-        }
-        .autocomplete-item { padding:10px 14px; font-size:12px; cursor:pointer; }
-        .autocomplete-item:hover { background:rgba(16,185,129,0.2); color:#10b981; }
-
-        /* Comparative Data Table */
-        .data-table { width:100%; border-collapse:collapse; margin-top:16px; }
-        .data-table th, .data-table td { padding:10px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.08); font-size:13px; }
-        .data-table th { background:rgba(255,255,255,0.03); color:#94a3b8; }
     </style>
 </head>
 <body>
 
-<div id="app-layout">
+<div id="app-viewport">
     <!-- LEFT SIDEBAR CONTROL PANEL -->
-    <div id="sidebar">
-        <div class="brand-header">
-            <div class="brand-title"><i class="fas fa-leaf"></i> EcoPulse</div>
-            <span class="version-badge">v3.5 Live</span>
-        </div>
-
-        <div class="search-container">
-            <input id="globalSearchInput" class="search-input" placeholder="Search any city or location globally..." />
-        </div>
-
-        <div id="selectedLocDisplay" style="font-size:12px; color:#94a3b8; display:flex; align-items:center; gap:6px;">
-            <i class="fas fa-location-crosshairs" style="color:#10b981;"></i> Current: Global Overview
-        </div>
-
-        <!-- KPI OVERVIEW GRID -->
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-label">Active Fires</div>
-                <div class="kpi-value" id="kpiFires">--</div>
+    <div id="sidebar-panel">
+        <div class="brand-header-box">
+            <div class="brand-logo-title">
+                <i class="fas fa-earth-americas"></i> EcoPulse
             </div>
-            <div class="kpi-card">
-                <div class="kpi-label">Threat Alerts</div>
-                <div class="kpi-value" id="kpiAlerts">--</div>
+            <span class="brand-badge">v4.0 Pro</span>
+        </div>
+
+        <div class="search-box-container">
+            <input id="globalLocationSearch" class="search-input-field" placeholder="Search any city or region globally..." />
+        </div>
+
+        <div id="activeLocationTag" class="location-tag-display">
+            <i class="fas fa-crosshairs" style="color: var(--accent-green);"></i> Location: Global Overview
+        </div>
+
+        <!-- KPI GRID -->
+        <div class="kpi-grid-3col">
+            <div class="kpi-card-box">
+                <div class="kpi-title-label">Active Fires</div>
+                <div class="kpi-metric-value" id="kpiFireCount">--</div>
             </div>
-            <div class="kpi-card">
-                <div class="kpi-label">Avg Temp</div>
-                <div class="kpi-value" id="kpiTemp">--</div>
+            <div class="kpi-card-box">
+                <div class="kpi-title-label">Threat Alerts</div>
+                <div class="kpi-metric-value" id="kpiAlertCount">--</div>
+            </div>
+            <div class="kpi-card-box">
+                <div class="kpi-title-label">Mean Temp</div>
+                <div class="kpi-metric-value" id="kpiMeanTemp">--</div>
             </div>
         </div>
 
-        <!-- MULTI CITY COMPARISON LAUNCHER CARD -->
-        <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center;">
+        <!-- MULTI-CITY COMPARISON LAUNCHER CARD -->
+        <div class="glass-panel-card" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <div style="font-size:13px; font-weight:700; color:#fbbf24;">Multi-City Matrix</div>
-                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Compare dynamic climate risk across cities</div>
+                <div style="font-size: 14px; font-weight: 800; color: var(--accent-amber);">Multi-City Matrix</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Cross-compare risk indices</div>
             </div>
-            <button onclick="openCompareModal()" class="btn-primary"><i class="fas fa-columns"></i> Compare</button>
+            <button onclick="openCompareModal()" class="btn-action"><i class="fas fa-layer-group"></i> Compare</button>
         </div>
 
         <!-- 7-DAY FORECAST CHART CONTAINER -->
-        <div class="glass-card" style="flex:1; min-height:220px; display:flex; flex-direction:column;">
-            <div style="font-size:13px; font-weight:700; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="glass-panel-card" style="flex: 1; min-height: 240px; display: flex; flex-direction: column;">
+            <div style="font-size: 13px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                 <span>📈 7-Day Temperature Trend</span>
-                <span id="chartCityTag" style="font-size:10px; color:#10b981;">Selected Region</span>
+                <span id="forecastChartTag" style="font-size: 10px; color: var(--accent-green);">Global Average</span>
             </div>
-            <div style="flex:1; position:relative;">
-                <canvas id="forecastChart"></canvas>
+            <div style="flex: 1; position: relative;">
+                <canvas id="forecastChartCanvas"></canvas>
             </div>
         </div>
 
         <!-- ACTION BUTTONS -->
-        <div style="display:flex; gap:10px; margin-top:auto;">
-            <button onclick="openAnalyticsModal()" class="btn-primary" style="flex:1;"><i class="fas fa-chart-pie"></i> Analytics</button>
-            <button onclick="openSubscribeModal()" class="btn-primary btn-indigo" style="flex:1;"><i class="fas fa-envelope"></i> Subscribe Email</button>
+        <div style="display: flex; gap: 10px; margin-top: auto;">
+            <button onclick="openAnalyticsModal()" class="btn-action" style="flex: 1;"><i class="fas fa-chart-pie"></i> Analytics</button>
+            <button onclick="openSubscribeModal()" class="btn-action btn-purple" style="flex: 1;"><i class="fas fa-envelope"></i> Email Alerts</button>
         </div>
     </div>
 
-    <!-- MAIN INTERACTIVE MAP CONTAINER -->
-    <div id="map-wrapper">
+    <!-- MAIN INTERACTIVE MAP VIEWPORT -->
+    <div id="map-container">
         <div id="map"></div>
 
-        <!-- Floating Quick Controls -->
-        <div class="map-floating-controls">
-            <button class="icon-btn" onclick="toggleLegend()"><i class="fas fa-layer-group"></i></button>
-            <button class="icon-btn" onclick="toggleTimeSlider()"><i class="fas fa-history"></i></button>
+        <!-- Floating Control Stack -->
+        <div class="floating-controls-stack">
+            <button class="floating-icon-btn" onclick="toggleLegend()"><i class="fas fa-map-signs"></i></button>
+            <button class="floating-icon-btn" onclick="toggleTimeSlider()"><i class="fas fa-clock-rotate-left"></i></button>
         </div>
 
         <!-- Floating Legend Panel -->
-        <div class="legend-floating-panel" id="legendPanel">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-weight:700; color:#10b981;">Map Legend</span>
-                <button onclick="toggleLegend()" style="background:none; border:none; color:#fff; cursor:pointer;">&times;</button>
+        <div class="legend-popup-panel" id="legendPanel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-weight: 800; color: var(--accent-green);">Map Legend</span>
+                <button onclick="toggleLegend()" style="background:none; border:none; color: #fff; cursor:pointer;">&times;</button>
             </div>
-            <div style="font-size:12px; line-height:1.8; color:#cbd5e1;">
-                <div>🔴 <strong>Critical Alert:</strong> Heatwave / Fire Hazard</div>
-                <div>🟠 <strong>Watch:</strong> Moderate Flood / AQI Risk</div>
-                <div>🟡 <strong>Hotspot:</strong> NASA Satellite Thermal Point</div>
+            <div style="font-size: 12px; line-height: 2.0; color: #cbd5e1;">
+                <div>🔴 <strong>Critical Hazard:</strong> Thermal Anomaly / Heat Dome</div>
+                <div>🟠 <strong>Watch Alert:</strong> Flood / Pollution Threat</div>
+                <div>🟡 <strong>Hotspot Node:</strong> NASA Thermal Data Point</div>
             </div>
         </div>
 
-        <!-- Historical Time Slider Overlay -->
-        <div class="time-slider-bar" id="timeSliderBar">
-            <span style="font-size:12px; font-weight:600;"><i class="fas fa-clock"></i> History Slider:</span>
-            <input type="range" id="histDaysRange" min="1" max="30" value="7" oninput="document.getElementById('histDayLabel').textContent = this.value + ' Days';" />
-            <span id="histDayLabel" style="font-size:12px; font-weight:700; color:#10b981; min-width:50px;">7 Days</span>
-            <button onclick="executeHistoricalFetch()" class="btn-primary">Apply</button>
+        <!-- Historical Time Slider -->
+        <div class="time-slider-floating-bar" id="timeSliderBar">
+            <span style="font-size: 13px; font-weight: 600;"><i class="fas fa-history"></i> Historical Days:</span>
+            <input type="range" id="histDaysInput" min="1" max="30" value="7" oninput="document.getElementById('histDayValue').textContent = this.value + ' Days';" />
+            <span id="histDayValue" style="font-size: 13px; font-weight: 800; color: var(--accent-green); min-width: 60px;">7 Days</span>
+            <button onclick="executeHistoricalQuery()" class="btn-action">Apply Query</button>
         </div>
     </div>
 </div>
 
-<!-- ANALYTICS FULL MODAL -->
-<div class="modal-overlay" id="analyticsModal">
-    <div class="modal-body">
-        <button class="close-modal" onclick="closeAnalyticsModal()">&times;</button>
-        <h2 style="color:#10b981; font-size:22px; margin-bottom:6px;"><i class="fas fa-chart-line"></i> Global Climate Analytics Overview</h2>
-        <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Real-time climate telemetry across major regional monitoring centers.</p>
+<!-- ANALYTICS MODAL OVERLAY -->
+<div class="modal-overlay-bg" id="analyticsModal">
+    <div class="modal-content-card">
+        <button class="btn-modal-close" onclick="closeAnalyticsModal()">&times;</button>
+        <h2 style="color: var(--accent-green); font-size: 24px; margin-bottom: 8px;"><i class="fas fa-chart-line"></i> Global Environmental Analytics</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">Real-time climate indicators aggregated across key monitoring hubs.</p>
 
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:20px;">
-            <div class="glass-card" style="text-align:center;">
-                <div style="font-size:11px; color:#94a3b8;">Active Fires Tracked</div>
-                <div style="font-size:24px; font-weight:800; color:#ef4444;" id="anFires">--</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;">
+            <div class="glass-panel-card" style="text-align: center;">
+                <div style="font-size: 11px; color: var(--text-muted);">Active Fire Nodes</div>
+                <div style="font-size: 26px; font-weight: 900; color: var(--accent-red);" id="anFireVal">--</div>
             </div>
-            <div class="glass-card" style="text-align:center;">
-                <div style="font-size:11px; color:#94a3b8;">Threat Advisories</div>
-                <div style="font-size:24px; font-weight:800; color:#f59e0b;" id="anAlerts">--</div>
+            <div class="glass-panel-card" style="text-align: center;">
+                <div style="font-size: 11px; color: var(--text-muted);">Threat Advisories</div>
+                <div style="font-size: 26px; font-weight: 900; color: var(--accent-amber);" id="anAlertVal">--</div>
             </div>
-            <div class="glass-card" style="text-align:center;">
-                <div style="font-size:11px; color:#94a3b8;">Mean Temp</div>
-                <div style="font-size:24px; font-weight:800; color:#10b981;" id="anTemp">--</div>
+            <div class="glass-panel-card" style="text-align: center;">
+                <div style="font-size: 11px; color: var(--text-muted);">Mean Temperature</div>
+                <div style="font-size: 26px; font-weight: 900; color: var(--accent-green);" id="anTempVal">--</div>
             </div>
-            <div class="glass-card" style="text-align:center;">
-                <div style="font-size:11px; color:#94a3b8;">Mean Relative Humidity</div>
-                <div style="font-size:24px; font-weight:800; color:#3b82f6;" id="anHumidity">--</div>
+            <div class="glass-panel-card" style="text-align: center;">
+                <div style="font-size: 11px; color: var(--text-muted);">Mean Humidity</div>
+                <div style="font-size: 26px; font-weight: 900; color: var(--accent-blue);" id="anHumVal">--</div>
             </div>
         </div>
 
-        <div style="height:260px; position:relative;">
-            <canvas id="analyticsChart"></canvas>
+        <div style="height: 280px; position: relative;">
+            <canvas id="analyticsChartCanvas"></canvas>
         </div>
     </div>
 </div>
 
 <!-- MULTI-CITY COMPARISON MODAL -->
-<div class="modal-overlay" id="compareModal">
-    <div class="modal-body">
-        <button class="close-modal" onclick="closeCompareModal()">&times;</button>
-        <h2 style="color:#fbbf24; font-size:20px; margin-bottom:6px;"><i class="fas fa-balance-scale"></i> Dynamic Multi-City Risk Comparison</h2>
-        <p style="font-size:12px; color:#94a3b8; margin-bottom:16px;">Type and select any cities globally to run comparative climate metrics.</p>
+<div class="modal-overlay-bg" id="compareModal">
+    <div class="modal-content-card">
+        <button class="btn-modal-close" onclick="closeCompareModal()">&times;</button>
+        <h2 style="color: var(--accent-amber); font-size: 22px; margin-bottom: 8px;"><i class="fas fa-balance-scale"></i> Dynamic Multi-City Risk Matrix</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Search and select cities to construct comparative vulnerability matrices.</p>
 
-        <div style="display:flex; gap:12px; margin-bottom:16px;">
-            <div style="flex:1; position:relative;">
-                <input id="cmpCity1" class="search-input" placeholder="Search City 1..." />
-                <div id="cmpSug1" class="autocomplete-box"></div>
+        <div style="display: flex; gap: 14px; margin-bottom: 20px;">
+            <div style="flex: 1; position: relative;">
+                <input id="cmpCity1Input" class="search-input-field" placeholder="Search City 1..." />
+                <div id="cmpSug1Box" class="autocomplete-dropdown"></div>
             </div>
-            <div style="flex:1; position:relative;">
-                <input id="cmpCity2" class="search-input" placeholder="Search City 2..." />
-                <div id="cmpSug2" class="autocomplete-box"></div>
+            <div style="flex: 1; position: relative;">
+                <input id="cmpCity2Input" class="search-input-field" placeholder="Search City 2..." />
+                <div id="cmpSug2Box" class="autocomplete-dropdown"></div>
             </div>
-            <button onclick="executeMultiCityCompare()" class="btn-primary" style="padding:0 24px;">Run Comparison</button>
+            <button onclick="executeCityComparison()" class="btn-action" style="padding: 0 28px;">Run Matrix</button>
         </div>
 
-        <div id="compareResultsArea">
-            <p style="text-align:center; color:#64748b; margin-top:30px; font-size:13px;">Select cities above to generate comparison table.</p>
+        <div id="compareResultsContainer">
+            <p style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 13px;">Select locations above to generate comparison matrix.</p>
         </div>
     </div>
 </div>
 
-<!-- EMAIL SUBSCRIPTION MODAL -->
-<div class="modal-overlay" id="subscribeModal">
-    <div class="modal-body" style="max-width:440px;">
-        <button class="close-modal" onclick="closeSubscribeModal()">&times;</button>
-        <h2 style="color:#818cf8; font-size:20px; margin-bottom:6px;"><i class="fas fa-bell"></i> Real Email Alert Subscription</h2>
-        <p style="font-size:12px; color:#94a3b8; margin-bottom:16px;">Receive real-time climate hazard alerts directly to your inbox via SMTP.</p>
+<!-- EMAIL ALERT SUBSCRIPTION MODAL -->
+<div class="modal-overlay-bg" id="subscribeModal">
+    <div class="modal-content-card" style="max-width: 460px;">
+        <button class="btn-modal-close" onclick="closeSubscribeModal()">&times;</button>
+        <h2 style="color: var(--accent-purple); font-size: 22px; margin-bottom: 8px;"><i class="fas fa-bell"></i> Real Email Alert Registration</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Receive instant emergency weather and satellite threat alerts directly via SMTP.</p>
 
-        <div style="display:flex; flex-direction:column; gap:12px;">
-            <input id="subEmailInput" class="search-input" placeholder="Enter your email address..." />
-            <input id="subCountryInput" class="search-input" placeholder="Enter target country (e.g., Pakistan)..." value="Pakistan" />
-            <button onclick="submitSubscription()" class="btn-primary btn-indigo" style="padding:12px; margin-top:6px;">Activate Subscription</button>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+            <input id="subEmailField" class="search-input-field" placeholder="Enter your email address..." />
+            <input id="subCountryField" class="search-input-field" placeholder="Target region (e.g. Pakistan)..." value="Pakistan" />
+            <button onclick="submitEmailSubscription()" class="btn-action btn-purple" style="padding: 14px; margin-top: 6px;">Confirm Subscription</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Global Application State Variables
-    let map = null;
+    // ==========================================================================
+    // CORE APPLICATION CLIENT ENGINE
+    // ==========================================================================
+    let leafletMap = null;
     let forecastChart = null;
     let analyticsChart = null;
-    let heatOverlay = null;
-    let selectedCitiesList = {};
-
-    // Map Click & Marker Store
-    let activeMarkers = [];
+    let selectedCitiesRegistry = {};
 
     document.addEventListener('DOMContentLoaded', function() {
-        initMap();
+        initLeafletMap();
         initForecastChart();
-        loadInitialKPIs();
-        setupGlobalSearch();
-        setupAutocomplete('cmpCity1', 'cmpSug1', 1);
-        setupAutocomplete('cmpCity2', 'cmpSug2', 2);
+        loadKPIOverview();
+        setupGlobalSearchEngine();
+        setupCityAutocomplete('cmpCity1Input', 'cmpSug1Box', 1);
+        setupCityAutocomplete('cmpCity2Input', 'cmpSug2Box', 2);
     });
 
-    // Initialize Leaflet World Map
-    function initMap() {
-        map = L.map('map', { zoomControl: false }).setView([20, 0], 2);
+    // Initialize Leaflet Interactive Map
+    function initLeafletMap() {
+        leafletMap = L.map('map', { zoomControl: false }).setView([20, 0], 2);
         
-        // Dark Theme CartoDB Tile Layer
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 18,
             attribution: '© OpenStreetMap contributors, © CARTO'
-        }).addTo(map);
+        }).addTo(leafletMap);
 
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
 
-        // UNIVERSAL MAP CLICK LISTENER (GLOBAL GEOLOCATION)
-        map.on('click', async function(e) {
+        // MAP CLICK LISTENER FOR REVERSE GEOLOCATION
+        leafletMap.on('click', async function(e) {
             const lat = e.latlng.lat;
             const lon = e.latlng.lng;
 
             try {
                 const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                 const geoData = await geoRes.json();
-                const placeName = geoData.display_name || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+                const locationName = geoData.display_name || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
 
-                document.getElementById('selectedLocDisplay').innerHTML = `<i class="fas fa-location-dot" style="color:#10b981;"></i> ${placeName}`;
-                
-                // Fetch live weather for clicked location
+                document.getElementById('activeLocationTag').innerHTML = `<i class="fas fa-location-dot" style="color: var(--accent-green);"></i> ${locationName}`;
+
                 const weatherData = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r => r.json());
                 const cur = weatherData.current || {};
 
                 L.popup()
                     .setLatLng([lat, lon])
                     .setContent(`
-                        <div style="color:#0b0f19; font-family:sans-serif; padding:4px;">
-                            <strong style="font-size:13px; font-weight:700;">📍 ${placeName.split(',')[0]}</strong><br/>
+                        <div style="color:#0b0f19; font-family:sans-serif; padding:6px;">
+                            <strong style="font-size:14px;">📍 ${locationName.split(',')[0]}</strong><br/>
                             <span style="font-size:12px;">🌡️ Temp: <strong>${cur.temperature_2m || '--'}°C</strong></span><br/>
                             <span style="font-size:12px;">💧 Humidity: <strong>${cur.relative_humidity_2m || '--'}%</strong></span><br/>
                             <span style="font-size:12px;">💨 Wind: <strong>${cur.wind_speed_10m || '--'} km/h</strong></span>
                         </div>
                     `)
-                    .openOn(map);
+                    .openOn(leafletMap);
 
-                updateForecastChart(weatherData);
+                updateForecastChartData(weatherData);
 
             } catch(err) {
-                console.error("Reverse geocoding error:", err);
+                console.error("Map reverse geocoding failed:", err);
             }
         });
     }
 
-    // Initialize Chart.js Line Graph for 7-Day Forecast
+    // Initialize Chart.js Line Chart
     function initForecastChart() {
-        const ctx = document.getElementById('forecastChart').getContext('2d');
+        const ctx = document.getElementById('forecastChartCanvas').getContext('2d');
         forecastChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
                 datasets: [{
                     label: 'Max Temp (°C)',
-                    data: [28, 30, 29, 31, 33, 32, 30],
+                    data: [28, 31, 29, 32, 34, 33, 31],
                     borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
                     fill: true,
                     tension: 0.4
                 }]
@@ -477,7 +644,7 @@
         });
     }
 
-    function updateForecastChart(wData) {
+    function updateForecastChartData(wData) {
         if (wData.daily && forecastChart) {
             forecastChart.data.labels = wData.daily.time || ['D1','D2','D3','D4','D5','D6','D7'];
             forecastChart.data.datasets[0].data = wData.daily.temperature_2m_max || [];
@@ -485,27 +652,27 @@
         }
     }
 
-    async function loadInitialKPIs() {
+    async function loadKPIOverview() {
         try {
             const fires = await fetch('/api/fires').then(r => r.json());
             const alerts = await fetch('/api/alerts').then(r => r.json());
             
-            document.getElementById('kpiFires').textContent = fires.length || '0';
-            document.getElementById('kpiAlerts').textContent = alerts.length || '0';
-            document.getElementById('kpiTemp').textContent = '28.5°C';
+            document.getElementById('kpiFireCount').textContent = fires.length || '0';
+            document.getElementById('kpiAlertCount').textContent = alerts.length || '0';
+            document.getElementById('kpiMeanTemp').textContent = '28.5°C';
 
-            // Plot satellite fire hotspots on map
+            // Plot satellite fire points on map
             fires.forEach(f => {
                 L.circleMarker([f.lat, f.lon], {
-                    radius: 6,
+                    radius: 7,
                     color: '#ef4444',
                     fillColor: '#f87171',
-                    fillOpacity: 0.8
-                }).addTo(map).bindPopup(`🔥 <b>${f.type}</b><br/>Region: ${f.region}<br/>Brightness: ${f.brightness}`);
+                    fillOpacity: 0.85
+                }).addTo(leafletMap).bindPopup(`🔥 <b>${f.type}</b><br/>Region: ${f.region}<br/>Power: ${f.fire_power_mw} MW`);
             });
 
         } catch(e) {
-            console.error("Failed to load initial KPIs:", e);
+            console.error("Failed to load initial KPI overview:", e);
         }
     }
 
@@ -518,30 +685,30 @@
         bar.style.display = (bar.style.display === 'flex') ? 'none' : 'flex';
     }
 
-    async function executeHistoricalFetch() {
-        const days = document.getElementById('histDaysRange').value;
-        const data = await fetch(`/api/historical?lat=24.8607&lon=67.0011&days=${days}`).then(r => r.json());
+    async function executeHistoricalQuery() {
+        const days = document.getElementById('histDaysInput').value;
+        const res = await fetch(`/api/historical?lat=24.8607&lon=67.0011&days=${days}`).then(r => r.json());
         alert(`Loaded ${days} days of historical climate records.`);
     }
 
     function openAnalyticsModal() {
         document.getElementById('analyticsModal').classList.add('open');
         fetch('/api/analytics').then(r => r.json()).then(data => {
-            document.getElementById('anFires').textContent = data.total_fires;
-            document.getElementById('anAlerts').textContent = data.total_alerts;
-            document.getElementById('anTemp').textContent = data.avg_temperature + '°C';
-            document.getElementById('anHumidity').textContent = data.avg_humidity + '%';
+            document.getElementById('anFireVal').textContent = data.total_active_fires;
+            document.getElementById('anAlertVal').textContent = data.total_active_alerts;
+            document.getElementById('anTempVal').textContent = data.global_average_temperature_c + '°C';
+            document.getElementById('anHumVal').textContent = data.global_average_humidity_pct + '%';
 
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            const ctx = document.getElementById('analyticsChartCanvas').getContext('2d');
             if (analyticsChart) analyticsChart.destroy();
             
             analyticsChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: data.city_names,
+                    labels: data.monitored_cities,
                     datasets: [
-                        { label: 'Temperature (°C)', data: data.city_temps, backgroundColor: '#10b981' },
-                        { label: 'Risk Index', data: data.risk_scores, backgroundColor: '#ef4444' }
+                        { label: 'Temperature (°C)', data: data.city_temperatures, backgroundColor: '#10b981' },
+                        { label: 'Vulnerability Risk', data: data.city_risk_scores, backgroundColor: '#ef4444' }
                     ]
                 },
                 options: {
@@ -562,37 +729,37 @@
     function openSubscribeModal() { document.getElementById('subscribeModal').classList.add('open'); }
     function closeSubscribeModal() { document.getElementById('subscribeModal').classList.remove('open'); }
 
-    function setupAutocomplete(inputId, sugId, slot) {
+    function setupCityAutocomplete(inputId, dropdownId, slot) {
         const input = document.getElementById(inputId);
-        const sug = document.getElementById(sugId);
+        const dropdown = document.getElementById(dropdownId);
 
         input.addEventListener('input', async function() {
             const query = this.value.trim();
-            if (query.length < 2) { sug.style.display = 'none'; return; }
+            if (query.length < 2) { dropdown.style.display = 'none'; return; }
 
             const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=4`).then(r => r.json());
-            if (res.length === 0) { sug.style.display = 'none'; return; }
+            if (res.length === 0) { dropdown.style.display = 'none'; return; }
 
-            sug.innerHTML = res.map(item => `
-                <div class="autocomplete-item" onclick="selectCityForCompare('${inputId}', '${sugId}', ${slot}, '${item.display_name.replace(/'/g, "")}', ${item.lat}, ${item.lon})">
+            dropdown.innerHTML = res.map(item => `
+                <div class="autocomplete-row-item" onclick="selectCityForMatrix('${inputId}', '${dropdownId}', ${slot}, '${item.display_name.replace(/'/g, "")}', ${item.lat}, ${item.lon})">
                     ${item.display_name}
                 </div>
             `).join('');
-            sug.style.display = 'block';
+            dropdown.style.display = 'block';
         });
     }
 
-    function selectCityForCompare(inputId, sugId, slot, fullName, lat, lon) {
+    function selectCityForMatrix(inputId, dropdownId, slot, fullName, lat, lon) {
         const shortName = fullName.split(',')[0];
         document.getElementById(inputId).value = shortName;
-        document.getElementById(sugId).style.display = 'none';
-        selectedCitiesList[slot] = { name: shortName, lat: parseFloat(lat), lon: parseFloat(lon) };
+        document.getElementById(dropdownId).style.display = 'none';
+        selectedCitiesRegistry[slot] = { name: shortName, lat: parseFloat(lat), lon: parseFloat(lon) };
     }
 
-    async function executeMultiCityCompare() {
-        const payload = Object.values(selectedCitiesList);
+    async function executeCityComparison() {
+        const payload = Object.values(selectedCitiesRegistry);
         if (payload.length < 2) {
-            alert('Please select at least 2 cities using the autocomplete suggestions.');
+            alert('Please select at least 2 locations using the search dropdowns.');
             return;
         }
 
@@ -603,38 +770,38 @@
         }).then(r => r.json());
 
         let html = `
-            <table class="data-table">
+            <table class="matrix-table">
                 <thead>
                     <tr>
-                        <th>Metric</th>
-                        ${res.comparison.map(c => `<th>${c.city}</th>`).join('')}
+                        <th>Environmental Metric</th>
+                        ${res.comparison_matrix.map(c => `<th>${c.city}</th>`).join('')}
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Temperature</td>
-                        ${res.comparison.map(c => `<td style="color:#10b981; font-weight:700;">${c.temperature}°C</td>`).join('')}
+                        <td>Temperature (°C)</td>
+                        ${res.comparison_matrix.map(c => `<td style="color:var(--accent-green); font-weight:800;">${c.temperature_c}°C</td>`).join('')}
                     </tr>
                     <tr>
-                        <td>Humidity</td>
-                        ${res.comparison.map(c => `<td>${c.humidity}%</td>`).join('')}
+                        <td>Relative Humidity</td>
+                        ${res.comparison_matrix.map(c => `<td>${c.humidity_pct}%</td>`).join('')}
                     </tr>
                     <tr>
                         <td>Carbon Intensity</td>
-                        ${res.comparison.map(c => `<td>${c.carbon_intensity} gCO₂</td>`).join('')}
+                        ${res.comparison_matrix.map(c => `<td>${c.carbon_intensity} gCO₂</td>`).join('')}
                     </tr>
                     <tr>
-                        <td>Overall Risk Score</td>
-                        ${res.comparison.map(c => `<td style="color:#ef4444; font-weight:700;">${c.risk_score} / 100</td>`).join('')}
+                        <td>Vulnerability Score</td>
+                        ${res.comparison_matrix.map(c => `<td style="color:var(--accent-red); font-weight:800;">${c.vulnerability_score} / 100</td>`).join('')}
                     </tr>
                 </tbody>
             </table>
         `;
-        document.getElementById('compareResultsArea').innerHTML = html;
+        document.getElementById('compareResultsContainer').innerHTML = html;
     }
 
-    function setupGlobalSearch() {
-        const input = document.getElementById('globalSearchInput');
+    function setupGlobalSearchEngine() {
+        const input = document.getElementById('globalLocationSearch');
         input.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
                 const query = this.value.trim();
@@ -646,11 +813,11 @@
                     const lat = parseFloat(item.lat);
                     const lon = parseFloat(item.lon);
 
-                    map.setView([lat, lon], 10);
-                    document.getElementById('selectedLocDisplay').innerHTML = `<i class="fas fa-location-dot" style="color:#10b981;"></i> ${item.display_name}`;
+                    leafletMap.setView([lat, lon], 10);
+                    document.getElementById('activeLocationTag').innerHTML = `<i class="fas fa-location-dot" style="color: var(--accent-green);"></i> ${item.display_name}`;
 
                     const weatherData = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r => r.json());
-                    updateForecastChart(weatherData);
+                    updateForecastChartData(weatherData);
                 } else {
                     alert('Location not found.');
                 }
@@ -658,9 +825,9 @@
         });
     }
 
-    async function submitSubscription() {
-        const email = document.getElementById('subEmailInput').value.trim();
-        const country = document.getElementById('subCountryInput').value.trim();
+    async function submitEmailSubscription() {
+        const email = document.getElementById('subEmailField').value.trim();
+        const country = document.getElementById('subCountryField').value.trim();
 
         if (!email) { alert('Please enter a valid email address.'); return; }
 
@@ -668,7 +835,7 @@
             method: 'POST'
         }).then(r => r.json());
 
-        alert(`✅ Subscription Successful! Confirmation dispatched to ${email}.`);
+        alert(`✅ Subscription Confirmed! Real alert notification sent to ${email}.`);
         closeSubscribeModal();
     }
 </script>
