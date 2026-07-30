@@ -1,844 +1,1416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EcoPulse · Global Climate Intelligence & Planetary Monitoring Engine</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoPulse - Next-Gen Urban Climate & Environmental Risk Intelligence Platform</title>
 
-    <!-- Leaflet CSS & JS Engine -->
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22'
+                        },
+                        darkbg: '#060a12',
+                        surface: '#0b1326',
+                        cardbg: '#111c35',
+                        panelbg: '#172442',
+                        bordercolor: '#1e2e52'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Leaflet GIS Map Styling & Script -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-heat/0.2.0/leaflet-heat.js"></script>
 
     <!-- Chart.js Engine -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- FontAwesome Vector Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <!-- FontAwesome Icon Set -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- Inter Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
         /* ==========================================================================
-           GLOBAL CSS RESET & DESIGN SYSTEM
+           CUSTOM COMPONENT & MAP OVERRIDE STYLES
            ========================================================================== */
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
         
-        :root {
-            --bg-dark: #0b0f19;
-            --panel-bg: rgba(15, 23, 42, 0.85);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --accent-green: #10b981;
-            --accent-green-hover: #34d399;
-            --accent-blue: #3b82f6;
-            --accent-amber: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-purple: #818cf8;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+        * {
+            box-sizing: border-box;
         }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #060a12;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
 
-        #app-viewport {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
+        /* Custom Scrollbar Configuration */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
 
-        /* ==========================================================================
-           SIDEBAR CONTROL PANEL
-           ========================================================================== */
-        #sidebar-panel {
-            width: 450px;
-            min-width: 450px;
-            height: 100vh;
-            background: rgba(11, 15, 25, 0.94);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-right: 1px solid var(--border-color);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            z-index: 2000;
-            overflow-y: auto;
-            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        ::-webkit-scrollbar-track {
+            background: #060a12;
         }
 
-        .brand-header-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
+        ::-webkit-scrollbar-thumb {
+            background: #1e2e52;
+            border-radius: 4px;
         }
 
-        .brand-logo-title {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--accent-green);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            letter-spacing: -0.5px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
         }
 
-        .brand-badge {
-            font-size: 10px;
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
-            padding: 3px 10px;
-            border-radius: 20px;
-            border: 1px solid var(--accent-green);
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .search-box-container {
-            position: relative;
-            width: 100%;
-        }
-
-        .search-input-field {
-            width: 100%;
-            padding: 12px 18px;
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            font-size: 13px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input-field:focus {
-            border-color: var(--accent-green);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-        }
-
-        .location-tag-display {
-            font-size: 12px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* KPI Cards Grid */
-        .kpi-grid-3col {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .kpi-card-box {
-            background: var(--panel-bg);
-            border-radius: 14px;
-            padding: 12px;
-            border-left: 3px solid var(--accent-green);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-        }
-
-        .kpi-title-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .kpi-metric-value {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-top: 4px;
-        }
-
-        /* Glass Cards */
-        .glass-panel-card {
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 16px;
-        }
-
-        .btn-action {
-            background: var(--accent-green);
-            color: #0b0f19;
-            font-weight: 700;
-            border: none;
-            padding: 11px 18px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-action:hover {
-            background: var(--accent-green-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-purple {
-            background: var(--accent-purple);
-            color: #fff;
-        }
-
-        .btn-purple:hover {
-            background: #a5b4fc;
-            box-shadow: 0 5px 15px rgba(129, 140, 248, 0.3);
-        }
-
-        /* ==========================================================================
-           MAIN MAP CONTAINER
-           ========================================================================== */
-        #map-container {
-            flex: 1;
-            height: 100vh;
-            position: relative;
-        }
-
+        /* Map Container Base Styles */
         #map {
             width: 100%;
             height: 100%;
-            background: var(--bg-dark);
+            min-height: 540px;
+            border-radius: 1rem;
+            z-index: 10;
         }
 
-        .floating-controls-stack {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .leaflet-container {
+            background-color: #080e1d !important;
+            font-family: 'Inter', sans-serif !important;
         }
 
-        .floating-icon-btn {
-            width: 46px;
-            height: 46px;
-            border-radius: 14px;
-            background: rgba(11, 15, 25, 0.9);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            backdrop-filter: blur(12px);
-            transition: all 0.2s ease;
+        .leaflet-popup-content-wrapper {
+            background: #111c35 !important;
+            color: #f1f5f9 !important;
+            border: 1px solid #1e2e52 !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
         }
 
-        .floating-icon-btn:hover {
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-            transform: scale(1.05);
+        .leaflet-popup-tip {
+            background: #111c35 !important;
         }
 
-        /* Floating Legend Box */
-        .legend-popup-panel {
-            position: absolute;
-            top: 90px;
-            right: 24px;
-            z-index: 1001;
-            background: rgba(11, 15, 25, 0.95);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 18px;
-            width: 240px;
-            display: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .legend-popup-panel.active { display: block; }
-
-        /* Time Slider Bar */
-        .time-slider-floating-bar {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            background: rgba(11, 15, 25, 0.92);
-            border: 1px solid var(--border-color);
-            padding: 14px 28px;
-            border-radius: 40px;
-            display: none;
-            align-items: center;
-            gap: 18px;
+        /* Glassmorphism Panel Container */
+        .glass-card {
+            background: rgba(17, 28, 53, 0.75);
             backdrop-filter: blur(16px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(30, 46, 82, 0.6);
+            border-radius: 1rem;
         }
 
-        /* ==========================================================================
-           MODAL OVERLAYS
-           ========================================================================== */
-        .modal-overlay-bg {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+        .glass-card-sm {
+            background: rgba(23, 36, 66, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(30, 46, 82, 0.5);
+            border-radius: 0.75rem;
         }
 
-        .modal-overlay-bg.open { display: flex; }
-
-        .modal-content-card {
-            background: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 28px;
-            width: 100%;
-            max-width: 950px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 32px;
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        /* Ambient Glow Animations */
+        .emerald-glow {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
         }
 
-        .btn-modal-close {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 26px;
+        .cyan-glow {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+        }
+
+        .amber-glow {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+        }
+
+        /* Pulse Indicator */
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .live-dot {
+            animation: pulse-ring 2s infinite;
+        }
+
+        /* Slider Custom Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #1e2e52;
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #10b981;
             cursor: pointer;
+            transition: transform 0.1s ease;
         }
 
-        .btn-modal-close:hover { color: var(--text-main); }
-
-        /* Autocomplete Suggestions Box */
-        .autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 14px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 3000;
-            margin-top: 6px;
-            display: none;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
         }
 
-        .autocomplete-row-item {
-            padding: 12px 16px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.2s ease;
+        /* Tooltip Animations */
+        .tooltip-box {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
         }
 
-        .autocomplete-row-item:hover {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
+        .has-tooltip:hover .tooltip-box {
+            visibility: visible;
+            opacity: 1;
         }
 
-        /* Matrix Table */
-        .matrix-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        /* Data Badges */
+        .badge-positive {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
-        .matrix-table th, .matrix-table td {
-            padding: 12px 16px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 13px;
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
-        .matrix-table th {
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text-muted);
-            font-weight: 600;
+        .badge-danger {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-info {
+            background-color: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(6, 182, 212, 0.3);
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col bg-darkbg text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
 
-<div id="app-viewport">
-    <!-- LEFT SIDEBAR CONTROL PANEL -->
-    <div id="sidebar-panel">
-        <div class="brand-header-box">
-            <div class="brand-logo-title">
-                <i class="fas fa-earth-americas"></i> EcoPulse
+    <!-- ===================================================================== -->
+    <!-- 1. NAVIGATION HEADER -->
+    <!-- ===================================================================== -->
+    <header class="sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-bordercolor px-6 py-3.5 flex items-center justify-between">
+        <!-- Logo & Branding -->
+        <div class="flex items-center space-x-4">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-0.5 flex items-center justify-center emerald-glow">
+                <div class="w-full h-full bg-darkbg rounded-[10px] flex items-center justify-center">
+                    <i class="fa-solid fa-leaf text-emerald-400 text-lg"></i>
+                </div>
             </div>
-            <span class="brand-badge">v4.0 Pro</span>
-        </div>
-
-        <div class="search-box-container">
-            <input id="globalLocationSearch" class="search-input-field" placeholder="Search any city or region globally..." />
-        </div>
-
-        <div id="activeLocationTag" class="location-tag-display">
-            <i class="fas fa-crosshairs" style="color: var(--accent-green);"></i> Location: Global Overview
-        </div>
-
-        <!-- KPI GRID -->
-        <div class="kpi-grid-3col">
-            <div class="kpi-card-box">
-                <div class="kpi-title-label">Active Fires</div>
-                <div class="kpi-metric-value" id="kpiFireCount">--</div>
-            </div>
-            <div class="kpi-card-box">
-                <div class="kpi-title-label">Threat Alerts</div>
-                <div class="kpi-metric-value" id="kpiAlertCount">--</div>
-            </div>
-            <div class="kpi-card-box">
-                <div class="kpi-title-label">Mean Temp</div>
-                <div class="kpi-metric-value" id="kpiMeanTemp">--</div>
-            </div>
-        </div>
-
-        <!-- MULTI-CITY COMPARISON LAUNCHER CARD -->
-        <div class="glass-panel-card" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <div style="font-size: 14px; font-weight: 800; color: var(--accent-amber);">Multi-City Matrix</div>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Cross-compare risk indices</div>
-            </div>
-            <button onclick="openCompareModal()" class="btn-action"><i class="fas fa-layer-group"></i> Compare</button>
-        </div>
-
-        <!-- 7-DAY FORECAST CHART CONTAINER -->
-        <div class="glass-panel-card" style="flex: 1; min-height: 240px; display: flex; flex-direction: column;">
-            <div style="font-size: 13px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <span>📈 7-Day Temperature Trend</span>
-                <span id="forecastChartTag" style="font-size: 10px; color: var(--accent-green);">Global Average</span>
-            </div>
-            <div style="flex: 1; position: relative;">
-                <canvas id="forecastChartCanvas"></canvas>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">EcoPulse</h1>
+                    <span class="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Enterprise v2.5</span>
+                </div>
+                <p class="text-xs text-slate-400 font-medium">Urban Climate Risk, Carbon Metrics & Predictive Spatial Intelligence</p>
             </div>
         </div>
 
-        <!-- ACTION BUTTONS -->
-        <div style="display: flex; gap: 10px; margin-top: auto;">
-            <button onclick="openAnalyticsModal()" class="btn-action" style="flex: 1;"><i class="fas fa-chart-pie"></i> Analytics</button>
-            <button onclick="openSubscribeModal()" class="btn-action btn-purple" style="flex: 1;"><i class="fas fa-envelope"></i> Email Alerts</button>
-        </div>
-    </div>
-
-    <!-- MAIN INTERACTIVE MAP VIEWPORT -->
-    <div id="map-container">
-        <div id="map"></div>
-
-        <!-- Floating Control Stack -->
-        <div class="floating-controls-stack">
-            <button class="floating-icon-btn" onclick="toggleLegend()"><i class="fas fa-map-signs"></i></button>
-            <button class="floating-icon-btn" onclick="toggleTimeSlider()"><i class="fas fa-clock-rotate-left"></i></button>
-        </div>
-
-        <!-- Floating Legend Panel -->
-        <div class="legend-popup-panel" id="legendPanel">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-weight: 800; color: var(--accent-green);">Map Legend</span>
-                <button onclick="toggleLegend()" style="background:none; border:none; color: #fff; cursor:pointer;">&times;</button>
+        <!-- Global Search Controller -->
+        <div class="hidden lg:flex items-center space-x-3 w-1/3 max-w-xl">
+            <div class="relative w-full">
+                <input type="text" id="globalCitySearch" placeholder="Search target city (e.g. Karachi, London, Tokyo, New York, Dubai)..." 
+                    class="w-full bg-darkbg border border-bordercolor rounded-xl px-4 py-2 pl-10 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition-all font-medium placeholder:text-slate-500">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-500 text-xs"></i>
+                <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <div style="font-size: 12px; line-height: 2.0; color: #cbd5e1;">
-                <div>🔴 <strong>Critical Hazard:</strong> Thermal Anomaly / Heat Dome</div>
-                <div>🟠 <strong>Watch Alert:</strong> Flood / Pollution Threat</div>
-                <div>🟡 <strong>Hotspot Node:</strong> NASA Thermal Data Point</div>
-            </div>
+            <button onclick="executeSearch()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-950/50 flex items-center space-x-2 shrink-0">
+                <i class="fa-solid fa-bolt text-amber-300"></i>
+                <span>Analyze</span>
+            </button>
         </div>
 
-        <!-- Historical Time Slider -->
-        <div class="time-slider-floating-bar" id="timeSliderBar">
-            <span style="font-size: 13px; font-weight: 600;"><i class="fas fa-history"></i> Historical Days:</span>
-            <input type="range" id="histDaysInput" min="1" max="30" value="7" oninput="document.getElementById('histDayValue').textContent = this.value + ' Days';" />
-            <span id="histDayValue" style="font-size: 13px; font-weight: 800; color: var(--accent-green); min-width: 60px;">7 Days</span>
-            <button onclick="executeHistoricalQuery()" class="btn-action">Apply Query</button>
-        </div>
-    </div>
-</div>
+        <!-- Right Side Action Controls -->
+        <div class="flex items-center space-x-3">
+            <button onclick="openModal('compareModal')" class="hidden sm:flex items-center space-x-2 bg-panelbg hover:bg-slate-800 border border-bordercolor text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition">
+                <i class="fa-solid fa-scale-balanced text-cyan-400"></i>
+                <span>Multi-City Matrix</span>
+            </button>
 
-<!-- ANALYTICS MODAL OVERLAY -->
-<div class="modal-overlay-bg" id="analyticsModal">
-    <div class="modal-content-card">
-        <button class="btn-modal-close" onclick="closeAnalyticsModal()">&times;</button>
-        <h2 style="color: var(--accent-green); font-size: 24px; margin-bottom: 8px;"><i class="fas fa-chart-line"></i> Global Environmental Analytics</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">Real-time climate indicators aggregated across key monitoring hubs.</p>
+            <button onclick="openModal('exportModal')" class="hidden sm:flex items-center space-x-2 bg-panelbg hover:bg-slate-800 border border-bordercolor text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition">
+                <i class="fa-solid fa-download text-emerald-400"></i>
+                <span>Export Report</span>
+            </button>
 
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;">
-            <div class="glass-panel-card" style="text-align: center;">
-                <div style="font-size: 11px; color: var(--text-muted);">Active Fire Nodes</div>
-                <div style="font-size: 26px; font-weight: 900; color: var(--accent-red);" id="anFireVal">--</div>
-            </div>
-            <div class="glass-panel-card" style="text-align: center;">
-                <div style="font-size: 11px; color: var(--text-muted);">Threat Advisories</div>
-                <div style="font-size: 26px; font-weight: 900; color: var(--accent-amber);" id="anAlertVal">--</div>
-            </div>
-            <div class="glass-panel-card" style="text-align: center;">
-                <div style="font-size: 11px; color: var(--text-muted);">Mean Temperature</div>
-                <div style="font-size: 26px; font-weight: 900; color: var(--accent-green);" id="anTempVal">--</div>
-            </div>
-            <div class="glass-panel-card" style="text-align: center;">
-                <div style="font-size: 11px; color: var(--text-muted);">Mean Humidity</div>
-                <div style="font-size: 26px; font-weight: 900; color: var(--accent-blue);" id="anHumVal">--</div>
+            <div class="h-6 w-px bg-bordercolor hidden sm:block"></div>
+
+            <div class="flex items-center space-x-2 bg-emerald-950/60 border border-emerald-800/40 px-3 py-1.5 rounded-xl">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 live-dot"></span>
+                <span class="text-xs font-mono font-bold text-emerald-300 uppercase">Live Telemetry</span>
             </div>
         </div>
+    </header>
 
-        <div style="height: 280px; position: relative;">
-            <canvas id="analyticsChartCanvas"></canvas>
-        </div>
-    </div>
-</div>
+    <!-- ===================================================================== -->
+    <!-- 2. MAIN DASHBOARD CONTENT AREA -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 p-4 md:p-6 grid grid-cols-12 gap-6">
 
-<!-- MULTI-CITY COMPARISON MODAL -->
-<div class="modal-overlay-bg" id="compareModal">
-    <div class="modal-content-card">
-        <button class="btn-modal-close" onclick="closeCompareModal()">&times;</button>
-        <h2 style="color: var(--accent-amber); font-size: 22px; margin-bottom: 8px;"><i class="fas fa-balance-scale"></i> Dynamic Multi-City Risk Matrix</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Search and select cities to construct comparative vulnerability matrices.</p>
+        <!-- =================================================================== -->
+        <!-- LEFT COLUMN: SPATIAL MAP ENGINE & SIMULATION CONTROLLERS (8 COLS)   -->
+        <!-- =================================================================== -->
+        <section class="col-span-12 lg:col-span-8 flex flex-col space-y-6">
 
-        <div style="display: flex; gap: 14px; margin-bottom: 20px;">
-            <div style="flex: 1; position: relative;">
-                <input id="cmpCity1Input" class="search-input-field" placeholder="Search City 1..." />
-                <div id="cmpSug1Box" class="autocomplete-dropdown"></div>
-            </div>
-            <div style="flex: 1; position: relative;">
-                <input id="cmpCity2Input" class="search-input-field" placeholder="Search City 2..." />
-                <div id="cmpSug2Box" class="autocomplete-dropdown"></div>
-            </div>
-            <button onclick="executeCityComparison()" class="btn-action" style="padding: 0 28px;">Run Matrix</button>
-        </div>
-
-        <div id="compareResultsContainer">
-            <p style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 13px;">Select locations above to generate comparison matrix.</p>
-        </div>
-    </div>
-</div>
-
-<!-- EMAIL ALERT SUBSCRIPTION MODAL -->
-<div class="modal-overlay-bg" id="subscribeModal">
-    <div class="modal-content-card" style="max-width: 460px;">
-        <button class="btn-modal-close" onclick="closeSubscribeModal()">&times;</button>
-        <h2 style="color: var(--accent-purple); font-size: 22px; margin-bottom: 8px;"><i class="fas fa-bell"></i> Real Email Alert Registration</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Receive instant emergency weather and satellite threat alerts directly via SMTP.</p>
-
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-            <input id="subEmailField" class="search-input-field" placeholder="Enter your email address..." />
-            <input id="subCountryField" class="search-input-field" placeholder="Target region (e.g. Pakistan)..." value="Pakistan" />
-            <button onclick="submitEmailSubscription()" class="btn-action btn-purple" style="padding: 14px; margin-top: 6px;">Confirm Subscription</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // ==========================================================================
-    // CORE APPLICATION CLIENT ENGINE
-    // ==========================================================================
-    let leafletMap = null;
-    let forecastChart = null;
-    let analyticsChart = null;
-    let selectedCitiesRegistry = {};
-
-    document.addEventListener('DOMContentLoaded', function() {
-        initLeafletMap();
-        initForecastChart();
-        loadKPIOverview();
-        setupGlobalSearchEngine();
-        setupCityAutocomplete('cmpCity1Input', 'cmpSug1Box', 1);
-        setupCityAutocomplete('cmpCity2Input', 'cmpSug2Box', 2);
-    });
-
-    // Initialize Leaflet Interactive Map
-    function initLeafletMap() {
-        leafletMap = L.map('map', { zoomControl: false }).setView([20, 0], 2);
-        
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 18,
-            attribution: '© OpenStreetMap contributors, © CARTO'
-        }).addTo(leafletMap);
-
-        L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
-
-        // MAP CLICK LISTENER FOR REVERSE GEOLOCATION
-        leafletMap.on('click', async function(e) {
-            const lat = e.latlng.lat;
-            const lon = e.latlng.lng;
-
-            try {
-                const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-                const geoData = await geoRes.json();
-                const locationName = geoData.display_name || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
-
-                document.getElementById('activeLocationTag').innerHTML = `<i class="fas fa-location-dot" style="color: var(--accent-green);"></i> ${locationName}`;
-
-                const weatherData = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r => r.json());
-                const cur = weatherData.current || {};
-
-                L.popup()
-                    .setLatLng([lat, lon])
-                    .setContent(`
-                        <div style="color:#0b0f19; font-family:sans-serif; padding:6px;">
-                            <strong style="font-size:14px;">📍 ${locationName.split(',')[0]}</strong><br/>
-                            <span style="font-size:12px;">🌡️ Temp: <strong>${cur.temperature_2m || '--'}°C</strong></span><br/>
-                            <span style="font-size:12px;">💧 Humidity: <strong>${cur.relative_humidity_2m || '--'}%</strong></span><br/>
-                            <span style="font-size:12px;">💨 Wind: <strong>${cur.wind_speed_10m || '--'} km/h</strong></span>
+            <!-- Active Location Banner & Global Quick Stats -->
+            <div class="glass-card p-4 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
+                        <i class="fa-solid fa-location-dot text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h2 id="currentCityTitle" class="text-lg font-bold text-white">Karachi, Pakistan</h2>
+                            <span id="currentCityCoords" class="text-[11px] font-mono text-slate-400 bg-darkbg px-2 py-0.5 rounded border border-bordercolor">24.8607° N, 67.0011° E</span>
                         </div>
-                    `)
-                    .openOn(leafletMap);
+                        <p id="currentCitySubtitle" class="text-xs text-slate-400 mt-0.5">Primary Coastal Urban Agglomeration • Climate Hazard Zone 3</p>
+                    </div>
+                </div>
 
-                updateForecastChartData(weatherData);
+                <div class="flex items-center space-x-6 text-right">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Climate Vulnerability</p>
+                        <p id="cityRiskBadge" class="text-sm font-bold text-amber-400 flex items-center justify-end space-x-1">
+                            <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                            <span>7.4 / 10 (High)</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Live Data Stream</p>
+                        <p class="text-sm font-bold text-emerald-400 font-mono">100% Operational</p>
+                    </div>
+                </div>
+            </div>
 
-            } catch(err) {
-                console.error("Map reverse geocoding failed:", err);
-            }
-        });
-    }
+            <!-- GIS Spatial Interactive Map Engine -->
+            <div class="glass-card p-4 flex flex-col shadow-2xl relative">
+                <div class="flex flex-wrap items-center justify-between pb-3 border-b border-bordercolor mb-3 gap-2">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-map text-emerald-400"></i>
+                        <h3 class="text-sm font-bold text-slate-200">Interactive GIS Multi-Layer Map Engine</h3>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs text-slate-400">Layer Opacity:</span>
+                        <input type="range" id="opacitySlider" min="10" max="100" value="85" oninput="changeMapOpacity(this.value)" class="w-24 accent-emerald-500">
+                        <button onclick="resetMapLocation()" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium border border-emerald-500/30 px-2.5 py-1 rounded-lg bg-emerald-500/10">
+                            Center View
+                        </button>
+                    </div>
+                </div>
 
-    // Initialize Chart.js Line Chart
-    function initForecastChart() {
-        const ctx = document.getElementById('forecastChartCanvas').getContext('2d');
-        forecastChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-                datasets: [{
-                    label: 'Max Temp (°C)',
-                    data: [28, 31, 29, 32, 34, 33, 31],
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                    fill: true,
-                    tension: 0.4
-                }]
+                <!-- Leaflet DOM Mount Element -->
+                <div class="relative w-full h-[520px] rounded-xl overflow-hidden border border-bordercolor">
+                    <div id="map"></div>
+
+                    <!-- Map Floating Legend Overlay -->
+                    <div class="absolute bottom-4 right-4 z-[400] glass-card p-3 text-xs space-y-2 pointer-events-auto max-w-xs">
+                        <div class="flex items-center justify-between border-b border-bordercolor pb-1">
+                            <span class="font-bold text-slate-300">Heat Intensity Legend</span>
+                            <i class="fa-solid fa-circle-info text-slate-500"></i>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="h-2 flex-1 rounded bg-gradient-to-r from-emerald-500 via-amber-400 via-orange-500 to-rose-600"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+                            <span>Optimal</span>
+                            <span>Moderate</span>
+                            <span>Critical</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10 Real-Time Spatial Layer Control Panel -->
+            <div class="glass-card p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">10 Spatial Analytical Map Layers</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Toggle real-time geographical overlays onto the active viewing canvas</p>
+                    </div>
+                    <button onclick="selectAllLayers()" class="text-xs text-cyan-400 hover:underline">Select All</button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="layerButtonsGrid">
+                    <!-- Dynamic Layer Toggles populated via JS -->
+                </div>
+            </div>
+
+            <!-- Climate Scenario Simulator Component -->
+            <div class="glass-card p-6 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex items-center justify-between pb-4 border-b border-bordercolor mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg border border-cyan-500/20">
+                            <i class="fa-solid fa-sliders text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-100">Climate Scenario Impact Simulator</h3>
+                            <p class="text-xs text-slate-400">Simulate structural urban interventions and model predicted climate responses</p>
+                        </div>
+                    </div>
+                    <button onclick="resetScenarioSliders()" class="text-xs text-slate-300 bg-panelbg hover:bg-slate-800 border border-bordercolor px-3 py-1.5 rounded-lg transition">
+                        Reset Defaults
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Slider 1 -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-medium text-slate-300">Urban Built Density</span>
+                            <span id="sliderValueDensity" class="font-mono font-bold text-amber-400">65%</span>
+                        </div>
+                        <input type="range" id="simDensity" min="10" max="100" value="65" oninput="runSimulationEngine()" class="w-full">
+                        <p class="text-[10px] text-slate-500">Models concrete coverage and surface thermal retention</p>
+                    </div>
+
+                    <!-- Slider 2 -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-medium text-slate-300">Green Infrastructure Canopy</span>
+                            <span id="sliderValueGreen" class="font-mono font-bold text-emerald-400">22%</span>
+                        </div>
+                        <input type="range" id="simGreen" min="5" max="80" value="22" oninput="runSimulationEngine()" class="w-full accent-emerald-500">
+                        <p class="text-[10px] text-slate-500">Models urban canopy cooling and rainwater absorption</p>
+                    </div>
+
+                    <!-- Slider 3 -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-medium text-slate-300">Grid Renewable Energy Share</span>
+                            <span id="sliderValueRenewable" class="font-mono font-bold text-cyan-400">30%</span>
+                        </div>
+                        <input type="range" id="simRenewable" min="0" max="100" value="30" oninput="runSimulationEngine()" class="w-full accent-cyan-500">
+                        <p class="text-[10px] text-slate-500">Models local power generation carbon displacement</p>
+                    </div>
+                </div>
+
+                <!-- Calculated Output Metrics Panel -->
+                <div class="p-4 bg-darkbg/90 border border-bordercolor rounded-xl grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="border-r border-bordercolor/60 pr-2">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Predicted Temp Shift</p>
+                        <p id="calcTempShift" class="text-lg font-black text-amber-400 font-mono mt-1">+1.45 °C</p>
+                    </div>
+                    <div class="border-r border-bordercolor/60 pr-2">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Carbon Output Rate</p>
+                        <p id="calcCarbonRate" class="text-lg font-black text-cyan-400 font-mono mt-1">295 gCO₂/kWh</p>
+                    </div>
+                    <div class="border-r border-bordercolor/60 pr-2">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Forecast Air Quality</p>
+                        <p id="calcAqiScore" class="text-lg font-black text-emerald-400 font-mono mt-1">98 AQI</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Overall Sustainability Score</p>
+                        <p id="calcSustScore" class="text-lg font-black text-teal-300 font-mono mt-1">68.2 / 100</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Map Playback Timeline Engine -->
+            <div class="glass-card p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Historical Playback & Trend Timeline</h3>
+                    </div>
+                    <span id="playbackDateDisplay" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-lg">Today (Live Stream)</span>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleTimelinePlayback()" id="playPauseBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white w-10 h-10 rounded-xl transition flex items-center justify-center shrink-0 shadow-lg shadow-emerald-950/50">
+                        <i class="fa-solid fa-play text-sm" id="playIcon"></i>
+                    </button>
+                    <div class="flex-1 space-y-1">
+                        <input type="range" id="timelineSlider" min="0" max="6" value="6" oninput="handleTimelineSlider(this.value)" class="w-full accent-emerald-500">
+                        <div class="flex justify-between text-[10px] font-mono text-slate-500">
+                            <span>T-6 Days</span>
+                            <span>T-5 Days</span>
+                            <span>T-4 Days</span>
+                            <span>T-3 Days</span>
+                            <span>T-2 Days</span>
+                            <span>Yesterday</span>
+                            <span class="text-emerald-400 font-bold">Today</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- RIGHT COLUMN: 14 FEATURE MATRIX & ANALYTICAL DRAWER (4 COLS)        -->
+        <!-- =================================================================== -->
+        <section class="col-span-12 lg:col-span-4 flex flex-col space-y-6">
+
+            <!-- Feature Metric Header & Explainability Action Button -->
+            <div class="glass-card p-5 flex flex-col">
+                <div class="flex items-center justify-between pb-3 border-b border-bordercolor mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-100 flex items-center">
+                            <i class="fa-solid fa-cubes text-emerald-400 mr-2"></i> 14 Feature Metric Matrix
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Real-time parameters for active location</p>
+                    </div>
+                    <button onclick="openModal('shapModal')" class="text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20 transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-brain"></i>
+                        <span>SHAP Explain</span>
+                    </button>
+                </div>
+
+                <!-- 14 Feature Metric Cards Container -->
+                <div class="grid grid-cols-2 gap-2.5 max-h-[460px] overflow-y-auto pr-1" id="metricsCardsContainer">
+                    <!-- Dynamically populated via JS -->
+                </div>
+            </div>
+
+            <!-- Historical Temperature Trend Chart Panel -->
+            <div class="glass-card p-5 flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-100 flex items-center">
+                        <i class="fa-solid fa-chart-line text-cyan-400 mr-2"></i> 7-Day Temperature Trend
+                    </h3>
+                    <span class="text-[10px] font-mono text-slate-400">Historical (°C)</span>
+                </div>
+                <div class="relative h-48 w-full">
+                    <canvas id="tempTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- AI Assistant Interface Panel -->
+            <div class="glass-card p-5 flex flex-col flex-1">
+                <div class="flex items-center justify-between pb-3 border-b border-bordercolor mb-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                            <i class="fa-solid fa-robot text-emerald-400 text-xs"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-100">EcoPulse Intelligence AI</h3>
+                            <p class="text-[10px] text-slate-400">LLM Assistant for Climate Diagnostics</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">Active</span>
+                </div>
+
+                <!-- Chat Messages Scroll Container -->
+                <div id="aiChatBox" class="bg-darkbg/90 border border-bordercolor rounded-xl p-3 h-52 overflow-y-auto space-y-3 mb-3 text-xs">
+                    <div class="bg-panelbg/80 p-3 rounded-xl text-slate-300 max-w-[90%] border border-bordercolor space-y-1">
+                        <p class="font-semibold text-emerald-400 text-[11px] flex items-center">
+                            <i class="fa-solid fa-circle-info mr-1"></i> EcoPulse Assistant
+                        </p>
+                        <p>Hello! I am your AI climate intelligence assistant. You can ask me about urban heat island factors, local AQI trends, or mitigation strategies for <span class="text-white font-semibold" id="aiChatActiveCity">Karachi</span>.</p>
+                    </div>
+                </div>
+
+                <!-- Chat Input Controls -->
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="aiChatInput" onkeypress="handleAiChatKey(event)" placeholder="Ask climate AI assistant..." 
+                        class="flex-1 bg-darkbg border border-bordercolor text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                    <button onclick="sendAiMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-emerald-950/50">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 3. MODAL DIALOGS (COMPARATIVE MATRIX, SHAP, EXPORT)                  -->
+    <!-- ===================================================================== -->
+
+    <!-- Multi-City Comparison Matrix Modal -->
+    <div id="compareModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card max-w-5xl w-full p-6 flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between pb-4 border-b border-bordercolor">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
+                        <i class="fa-solid fa-scale-balanced text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-100">Multi-City Comparative Analysis Engine</h3>
+                        <p class="text-xs text-slate-400">Side-by-side breakdown of all 14 metrics across global metropolitan regions</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('compareModal')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Comparison Table Container -->
+            <div class="py-4 overflow-x-auto flex-1">
+                <table class="w-full text-xs text-left text-slate-300 border-collapse">
+                    <thead class="bg-panelbg text-slate-200 uppercase font-mono text-[10px] sticky top-0">
+                        <tr>
+                            <th class="p-3 border-b border-bordercolor">Feature Metric</th>
+                            <th class="p-3 border-b border-bordercolor text-emerald-400">Karachi (PK)</th>
+                            <th class="p-3 border-b border-bordercolor text-cyan-400">London (UK)</th>
+                            <th class="p-3 border-b border-bordercolor text-amber-400">Tokyo (JP)</th>
+                            <th class="p-3 border-b border-bordercolor text-rose-400">New York (US)</th>
+                            <th class="p-3 border-b border-bordercolor text-teal-400">Dubai (AE)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-bordercolor/60 font-mono" id="comparisonTableBody">
+                        <!-- Populated dynamically via Javascript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pt-4 border-t border-bordercolor flex justify-between items-center text-xs text-slate-400">
+                <span>Displaying 14 indicators across 5 primary monitoring centers</span>
+                <button onclick="closeModal('compareModal')" class="bg-panelbg hover:bg-slate-800 text-slate-200 border border-bordercolor px-4 py-2 rounded-xl transition">
+                    Close Matrix
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHAP Explainability Breakdown Modal -->
+    <div id="shapModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card max-w-2xl w-full p-6 flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between pb-4 border-b border-bordercolor">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                        <i class="fa-solid fa-brain text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-100">SHAP Feature Impact Breakdown</h3>
+                        <p class="text-xs text-slate-400">Explainable AI attribution scores driving current climate risk rating</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('shapModal')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="py-4 space-y-4 overflow-y-auto flex-1">
+                <p class="text-xs text-slate-300">
+                    SHAP (SHapley Additive exPlanations) quantifies the positive or negative contribution of each environmental feature toward the overall calculated Eco Risk Index score.
+                </p>
+
+                <!-- SHAP Bars Container -->
+                <div class="space-y-3" id="shapBarsContainer">
+                    <!-- Populated via Javascript -->
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-bordercolor flex justify-end">
+                <button onclick="closeModal('shapModal')" class="bg-panelbg hover:bg-slate-800 text-slate-200 border border-bordercolor px-4 py-2 rounded-xl text-xs transition">
+                    Close Explanation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Report Modal -->
+    <div id="exportModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full p-6 flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-bordercolor">
+                <h3 class="text-base font-bold text-slate-100 flex items-center">
+                    <i class="fa-solid fa-file-export text-emerald-400 mr-2"></i> Export Telemetry Report
+                </h3>
+                <button onclick="closeModal('exportModal')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="py-4 space-y-4 text-xs">
+                <p class="text-slate-300">Select export parameters for <span id="exportModalCity" class="text-emerald-400 font-bold">Karachi</span>:</p>
+
+                <div class="space-y-2">
+                    <label class="block text-slate-400 font-medium">Format Selection</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="selectExportFormat('pdf')" id="fmtPdf" class="p-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-semibold text-center">PDF</button>
+                        <button onclick="selectExportFormat('csv')" id="fmtCsv" class="p-2.5 rounded-xl border border-bordercolor bg-panelbg text-slate-300 font-semibold text-center">CSV</button>
+                        <button onclick="selectExportFormat('json')" id="fmtJson" class="p-2.5 rounded-xl border border-bordercolor bg-panelbg text-slate-300 font-semibold text-center">JSON</button>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-slate-400 font-medium">Include Sub-Components</label>
+                    <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                        <input type="checkbox" checked class="accent-emerald-500 rounded">
+                        <span>All 14 Feature Indicators</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                        <input type="checkbox" checked class="accent-emerald-500 rounded">
+                        <span>7-Day Historical Data Series</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                        <input type="checkbox" checked class="accent-emerald-500 rounded">
+                        <span>SHAP Model Explainability Graph</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-bordercolor flex space-x-2 justify-end">
+                <button onclick="closeModal('exportModal')" class="bg-panelbg hover:bg-slate-800 text-slate-300 border border-bordercolor px-4 py-2 rounded-xl text-xs transition">Cancel</button>
+                <button onclick="triggerExportDownload()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download Report</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Banner -->
+    <footer class="border-t border-bordercolor bg-surface/60 px-6 py-3.5 text-center text-xs text-slate-500 flex flex-wrap justify-between items-center gap-2">
+        <p>EcoPulse Analytics System © 2026. Built with Python, GIS & Machine Learning.</p>
+        <div class="flex items-center space-x-4">
+            <span class="hover:text-slate-300 cursor-pointer">Documentation</span>
+            <span class="hover:text-slate-300 cursor-pointer">API Endpoint</span>
+            <span class="hover:text-slate-300 cursor-pointer">System Status</span>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- 4. DASHBOARD JAVASCRIPT ENGINE & DATA MANAGEMENT MODULES              -->
+    <!-- ===================================================================== -->
+    <script>
+        // ====================================================================
+        // GLOBAL STATE & DATA STORAGE
+        // ====================================================================
+
+        let leafletMap = null;
+        let trendChart = null;
+        let selectedExportFormat = 'pdf';
+        let playbackInterval = null;
+        let isPlaying = false;
+        let activeCityKey = "karachi";
+
+        // 10 Map Layers State
+        const mapLayersState = {
+            'layer_01': { name: 'Weather Radar', icon: '🌤️', active: true },
+            'layer_02': { name: 'Wildfire Hotspots', icon: '🔥', active: false },
+            'layer_03': { name: 'Marine Heatwaves', icon: '🌊', active: false },
+            'layer_04': { name: 'Carbon Intensity', icon: '⚡', active: true },
+            'layer_05': { name: 'Turbulence Risk', icon: '✈️', active: false },
+            'layer_06': { name: 'Pollen Forecast', icon: '🌿', active: false },
+            'layer_07': { name: 'Urban Heat Island', icon: '🏙️', active: true },
+            'layer_08': { name: 'Sovereign Vulnerability', icon: '🛡️', active: false },
+            'layer_09': { name: 'Extreme Alerts', icon: '⚠️', active: true },
+            'layer_10': { name: 'City Markers', icon: '📍', active: true }
+        };
+
+        // Complete 14 Feature Indicators Definitions
+        const featureSchema = [
+            { id: 'temperature', name: 'Surface Temp', unit: '°C', icon: 'fa-temperature-half' },
+            { id: 'carbon_intensity', name: 'Carbon Intensity', unit: 'gCO₂/kWh', icon: 'fa-bolt' },
+            { id: 'air_quality_index', name: 'Air Quality (AQI)', unit: 'AQI', icon: 'fa-wind' },
+            { id: 'humidity', name: 'Relative Humidity', unit: '%', icon: 'fa-droplet' },
+            { id: 'wind_speed', name: 'Wind Velocity', unit: 'km/h', icon: 'fa-compass' },
+            { id: 'precipitation', name: 'Precipitation Risk', unit: '%', icon: 'fa-cloud-showers-heavy' },
+            { id: 'eco_risk_score', name: 'Eco Risk Score', unit: '/10', icon: 'fa-triangle-exclamation' },
+            { id: 'green_cover', name: 'Green Cover Ratio', unit: '%', icon: 'fa-tree' },
+            { id: 'renewable_energy', name: 'Renewable Share', unit: '%', icon: 'fa-solar-panel' },
+            { id: 'waste_management', name: 'Recycling Efficiency', unit: '/100', icon: 'fa-recycle' },
+            { id: 'traffic_congestion', name: 'Traffic Delay Index', unit: '%', icon: 'fa-car' },
+            { id: 'solar_potential', name: 'Solar Yield Potential', unit: 'kWh/m²', icon: 'fa-sun' },
+            { id: 'water_stress', name: 'Water Stress Level', unit: '%', icon: 'fa-glass-water' },
+            { id: 'resilience_index', name: 'Climate Resilience', unit: '/100', icon: 'fa-shield-halved' }
+        ];
+
+        // Comprehensive Multi-City Database
+        const cityDatabase = {
+            karachi: {
+                name: "Karachi",
+                country: "Pakistan",
+                lat: 24.8607,
+                lng: 67.0011,
+                coordsStr: "24.8607° N, 67.0011° E",
+                subtitle: "Primary Coastal Urban Agglomeration • Climate Hazard Zone 3",
+                riskText: "7.4 / 10 (High)",
+                riskClass: "text-amber-400",
+                metrics: {
+                    temperature: "32.4",
+                    carbon_intensity: "345",
+                    air_quality_index: "128",
+                    humidity: "68",
+                    wind_speed: "16.5",
+                    precipitation: "15",
+                    eco_risk_score: "7.4",
+                    green_cover: "18",
+                    renewable_energy: "28",
+                    waste_management: "38",
+                    traffic_congestion: "74",
+                    solar_potential: "6.2",
+                    water_stress: "82",
+                    resilience_index: "52"
+                },
+                history: [29.5, 30.1, 31.4, 31.0, 32.8, 33.2, 32.4],
+                shap: [
+                    { name: 'Surface Heat Island', impact: '+0.42', barWidth: '84%', color: 'bg-amber-400' },
+                    { name: 'Particulate Density (AQI)', impact: '+0.28', barWidth: '68%', color: 'bg-rose-400' },
+                    { name: 'High Water Stress Index', impact: '+0.21', barWidth: '52%', color: 'bg-orange-400' },
+                    { name: 'Urban Tree Canopy Shortfall', impact: '-0.15', barWidth: '38%', color: 'bg-emerald-400' }
+                ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
-                    y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
-                }
+            london: {
+                name: "London",
+                country: "United Kingdom",
+                lat: 51.5074,
+                lng: -0.1278,
+                coordsStr: "51.5074° N, 0.1278° W",
+                subtitle: "Temperate Maritime Zone • High Flood Risk Defense Grid",
+                riskText: "3.8 / 10 (Low)",
+                riskClass: "text-emerald-400",
+                metrics: {
+                    temperature: "18.2",
+                    carbon_intensity: "142",
+                    air_quality_index: "42",
+                    humidity: "75",
+                    wind_speed: "22.0",
+                    precipitation: "60",
+                    eco_risk_score: "3.8",
+                    green_cover: "41",
+                    renewable_energy: "58",
+                    waste_management: "78",
+                    traffic_congestion: "52",
+                    solar_potential: "3.2",
+                    water_stress: "32",
+                    resilience_index: "84"
+                },
+                history: [16.0, 16.5, 17.1, 18.0, 17.8, 18.5, 18.2],
+                shap: [
+                    { name: 'Clean Energy Grid', impact: '-0.35', barWidth: '70%', color: 'bg-emerald-400' },
+                    { name: 'Dense Vegetation Cover', impact: '-0.25', barWidth: '50%', color: 'bg-teal-400' },
+                    { name: 'Flood Surge Potential', impact: '+0.18', barWidth: '36%', color: 'bg-cyan-400' },
+                    { name: 'Vehicle Congestion', impact: '+0.12', barWidth: '24%', color: 'bg-amber-400' }
+                ]
+            },
+            tokyo: {
+                name: "Tokyo",
+                country: "Japan",
+                lat: 35.6762,
+                lng: 139.6503,
+                coordsStr: "35.6762° N, 139.6503° E",
+                subtitle: "Seismic & Typhoon Agglomeration • Advanced Mitigation Infrastructure",
+                riskText: "5.1 / 10 (Moderate)",
+                riskClass: "text-cyan-400",
+                metrics: {
+                    temperature: "26.8",
+                    carbon_intensity: "210",
+                    air_quality_index: "55",
+                    humidity: "70",
+                    wind_speed: "12.8",
+                    precipitation: "40",
+                    eco_risk_score: "5.1",
+                    green_cover: "30",
+                    renewable_energy: "42",
+                    waste_management: "88",
+                    traffic_congestion: "60",
+                    solar_potential: "4.8",
+                    water_stress: "45",
+                    resilience_index: "91"
+                },
+                history: [24.2, 25.0, 25.8, 26.1, 27.0, 26.4, 26.8],
+                shap: [
+                    { name: 'High Waste Recycling Rate', impact: '-0.30', barWidth: '60%', color: 'bg-emerald-400' },
+                    { name: 'Extreme Density Heat Trapping', impact: '+0.25', barWidth: '50%', color: 'bg-amber-400' },
+                    { name: 'Coastal Storm Surge Vulnerability', impact: '+0.18', barWidth: '36%', color: 'bg-rose-400' },
+                    { name: 'Efficient Public Transit', impact: '-0.14', barWidth: '28%', color: 'bg-cyan-400' }
+                ]
+            },
+            newyork: {
+                name: "New York",
+                country: "United States",
+                lat: 40.7128,
+                lng: -74.0060,
+                coordsStr: "40.7128° N, 74.0060° W",
+                subtitle: "Atlantic Coastal Megacity • High Urban Heat Island Profile",
+                riskText: "5.8 / 10 (Moderate)",
+                riskClass: "text-amber-300",
+                metrics: {
+                    temperature: "25.1",
+                    carbon_intensity: "280",
+                    air_quality_index: "68",
+                    humidity: "62",
+                    wind_speed: "18.4",
+                    precipitation: "30",
+                    eco_risk_score: "5.8",
+                    green_cover: "27",
+                    renewable_energy: "35",
+                    waste_management: "62",
+                    traffic_congestion: "81",
+                    solar_potential: "4.5",
+                    water_stress: "50",
+                    resilience_index: "76"
+                },
+                history: [22.8, 23.5, 24.1, 24.8, 25.5, 25.0, 25.1],
+                shap: [
+                    { name: 'Traffic Vehicle Emissions', impact: '+0.32', barWidth: '64%', color: 'bg-rose-400' },
+                    { name: 'Concrete Surface Albedo', impact: '+0.22', barWidth: '44%', color: 'bg-amber-400' },
+                    { name: 'Moderate Grid Decarbonization', impact: '-0.18', barWidth: '36%', color: 'bg-emerald-400' },
+                    { name: 'Harbor Surge Vulnerability', impact: '+0.14', barWidth: '28%', color: 'bg-cyan-400' }
+                ]
+            },
+            dubai: {
+                name: "Dubai",
+                country: "United Arab Emirates",
+                lat: 25.2048,
+                lng: 55.2708,
+                coordsStr: "25.2048° N, 55.2708° E",
+                subtitle: "Hyper-Arid Desert Agglomeration • Extreme Thermal Exposure",
+                riskText: "8.6 / 10 (Critical)",
+                riskClass: "text-rose-500",
+                metrics: {
+                    temperature: "41.5",
+                    carbon_intensity: "480",
+                    air_quality_index: "145",
+                    humidity: "52",
+                    wind_speed: "14.0",
+                    precipitation: "5",
+                    eco_risk_score: "8.6",
+                    green_cover: "12",
+                    renewable_energy: "22",
+                    waste_management: "55",
+                    traffic_congestion: "65",
+                    solar_potential: "7.8",
+                    water_stress: "95",
+                    resilience_index: "64"
+                },
+                history: [38.5, 39.2, 40.0, 41.1, 42.0, 41.8, 41.5],
+                shap: [
+                    { name: 'Extreme Thermal Ambient Index', impact: '+0.58', barWidth: '95%', color: 'bg-rose-500' },
+                    { name: 'High Desalination Water Stress', impact: '+0.34', barWidth: '68%', color: 'bg-orange-400' },
+                    { name: 'High Solar Irradiance Potential', impact: '-0.22', barWidth: '44%', color: 'bg-emerald-400' },
+                    { name: 'Arid Canopy Deficiency', impact: '+0.18', barWidth: '36%', color: 'bg-amber-400' }
+                ]
             }
+        };
+
+        // ====================================================================
+        // INITIALIZATION LIFECYCLE HOOKS
+        // ====================================================================
+
+        document.addEventListener("DOMContentLoaded", function () {
+            initializeMapEngine();
+            initializeTrendChart();
+            renderLayerButtons();
+            renderActiveCityData(activeCityKey);
         });
-    }
 
-    function updateForecastChartData(wData) {
-        if (wData.daily && forecastChart) {
-            forecastChart.data.labels = wData.daily.time || ['D1','D2','D3','D4','D5','D6','D7'];
-            forecastChart.data.datasets[0].data = wData.daily.temperature_2m_max || [];
-            forecastChart.update();
-        }
-    }
+        // ====================================================================
+        // GIS LEAFLET MAP ENGINE MODULE
+        // ====================================================================
 
-    async function loadKPIOverview() {
-        try {
-            const fires = await fetch('/api/fires').then(r => r.json());
-            const alerts = await fetch('/api/alerts').then(r => r.json());
-            
-            document.getElementById('kpiFireCount').textContent = fires.length || '0';
-            document.getElementById('kpiAlertCount').textContent = alerts.length || '0';
-            document.getElementById('kpiMeanTemp').textContent = '28.5°C';
+        function initializeMapEngine() {
+            const defaultCity = cityDatabase[activeCityKey];
 
-            // Plot satellite fire points on map
-            fires.forEach(f => {
-                L.circleMarker([f.lat, f.lon], {
-                    radius: 7,
-                    color: '#ef4444',
-                    fillColor: '#f87171',
-                    fillOpacity: 0.85
-                }).addTo(leafletMap).bindPopup(`🔥 <b>${f.type}</b><br/>Region: ${f.region}<br/>Power: ${f.fire_power_mw} MW`);
+            leafletMap = L.map('map', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([defaultCity.lat, defaultCity.lng], 7);
+
+            // CARTO Dark Matter Tile Layer
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }).addTo(leafletMap);
+
+            L.control.zoom({ position: 'topright' }).addTo(leafletMap);
+
+            // Populate Markers for all major database cities
+            Object.keys(cityDatabase).forEach(key => {
+                const city = cityDatabase[key];
+                const marker = L.marker([city.lat, city.lng]).addTo(leafletMap);
+                
+                marker.bindPopup(`
+                    <div class="p-1 space-y-1 text-xs">
+                        <p class="font-bold text-emerald-400 text-sm">${city.name}, ${city.country}</p>
+                        <p class="text-slate-300">Temp: <b class="text-white">${city.metrics.temperature} °C</b></p>
+                        <p class="text-slate-300">Risk Score: <b class="${city.riskClass}">${city.riskText}</b></p>
+                        <button onclick="switchCityFromMap('${key}')" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-1 px-2 rounded text-[10px] transition">
+                            Load City Analytics
+                        </button>
+                    </div>
+                `);
             });
-
-        } catch(e) {
-            console.error("Failed to load initial KPI overview:", e);
         }
-    }
 
-    function toggleLegend() {
-        document.getElementById('legendPanel').classList.toggle('active');
-    }
+        function changeMapOpacity(val) {
+            const opacity = val / 100;
+            const mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                mapContainer.style.opacity = opacity;
+            }
+        }
 
-    function toggleTimeSlider() {
-        const bar = document.getElementById('timeSliderBar');
-        bar.style.display = (bar.style.display === 'flex') ? 'none' : 'flex';
-    }
+        function resetMapLocation() {
+            const city = cityDatabase[activeCityKey];
+            if (leafletMap && city) {
+                leafletMap.flyTo([city.lat, city.lng], 8, { duration: 1.5 });
+            }
+        }
 
-    async function executeHistoricalQuery() {
-        const days = document.getElementById('histDaysInput').value;
-        const res = await fetch(`/api/historical?lat=24.8607&lon=67.0011&days=${days}`).then(r => r.json());
-        alert(`Loaded ${days} days of historical climate records.`);
-    }
+        function switchCityFromMap(key) {
+            if (cityDatabase[key]) {
+                activeCityKey = key;
+                renderActiveCityData(key);
+            }
+        }
 
-    function openAnalyticsModal() {
-        document.getElementById('analyticsModal').classList.add('open');
-        fetch('/api/analytics').then(r => r.json()).then(data => {
-            document.getElementById('anFireVal').textContent = data.total_active_fires;
-            document.getElementById('anAlertVal').textContent = data.total_active_alerts;
-            document.getElementById('anTempVal').textContent = data.global_average_temperature_c + '°C';
-            document.getElementById('anHumVal').textContent = data.global_average_humidity_pct + '%';
+        // ====================================================================
+        // SPATIAL LAYER CONTROLLER MODULE
+        // ====================================================================
 
-            const ctx = document.getElementById('analyticsChartCanvas').getContext('2d');
-            if (analyticsChart) analyticsChart.destroy();
-            
-            analyticsChart = new Chart(ctx, {
-                type: 'bar',
+        function renderLayerButtons() {
+            const container = document.getElementById('layerButtonsGrid');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            Object.keys(mapLayersState).forEach(layerId => {
+                const layer = mapLayersState[layerId];
+                const isActive = layer.active;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => toggleMapLayer(layerId);
+                btn.className = `p-2.5 rounded-xl text-xs font-medium text-left transition-all flex items-center space-x-2 border ${
+                    isActive 
+                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300 shadow-lg shadow-emerald-950/30' 
+                    : 'border-bordercolor bg-panelbg/50 text-slate-400 hover:border-slate-600'
+                }`;
+
+                btn.innerHTML = `
+                    <span class="text-base">${layer.icon}</span>
+                    <span class="truncate">${layer.name}</span>
+                `;
+
+                container.appendChild(btn);
+            });
+        }
+
+        function toggleMapLayer(layerId) {
+            if (mapLayersState[layerId]) {
+                mapLayersState[layerId].active = !mapLayersState[layerId].active;
+                renderLayerButtons();
+            }
+        }
+
+        function selectAllLayers() {
+            Object.keys(mapLayersState).forEach(key => {
+                mapLayersState[key].active = true;
+            });
+            renderLayerButtons();
+        }
+
+        // ====================================================================
+        // CHART ENGINE MODULE
+        // ====================================================================
+
+        function initializeTrendChart() {
+            const ctx = document.getElementById('tempTrendChart').getContext('2d');
+            const activeCity = cityDatabase[activeCityKey];
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: data.monitored_cities,
-                    datasets: [
-                        { label: 'Temperature (°C)', data: data.city_temperatures, backgroundColor: '#10b981' },
-                        { label: 'Vulnerability Risk', data: data.city_risk_scores, backgroundColor: '#ef4444' }
-                    ]
+                    labels: ['T-6', 'T-5', 'T-4', 'T-3', 'T-2', 'Yesterday', 'Today'],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: activeCity.history,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#10b981'
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#111c35',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#34d399',
+                            borderColor: '#1e2e52',
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
                     scales: {
-                        x: { ticks: { color: '#94a3b8' } },
-                        y: { ticks: { color: '#94a3b8' } }
+                        x: {
+                            grid: { color: 'rgba(30, 46, 82, 0.5)' },
+                            ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(30, 46, 82, 0.5)' },
+                            ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+                        }
                     }
                 }
             });
-        });
-    }
-
-    function closeAnalyticsModal() { document.getElementById('analyticsModal').classList.remove('open'); }
-    function openCompareModal() { document.getElementById('compareModal').classList.add('open'); }
-    function closeCompareModal() { document.getElementById('compareModal').classList.remove('open'); }
-    function openSubscribeModal() { document.getElementById('subscribeModal').classList.add('open'); }
-    function closeSubscribeModal() { document.getElementById('subscribeModal').classList.remove('open'); }
-
-    function setupCityAutocomplete(inputId, dropdownId, slot) {
-        const input = document.getElementById(inputId);
-        const dropdown = document.getElementById(dropdownId);
-
-        input.addEventListener('input', async function() {
-            const query = this.value.trim();
-            if (query.length < 2) { dropdown.style.display = 'none'; return; }
-
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=4`).then(r => r.json());
-            if (res.length === 0) { dropdown.style.display = 'none'; return; }
-
-            dropdown.innerHTML = res.map(item => `
-                <div class="autocomplete-row-item" onclick="selectCityForMatrix('${inputId}', '${dropdownId}', ${slot}, '${item.display_name.replace(/'/g, "")}', ${item.lat}, ${item.lon})">
-                    ${item.display_name}
-                </div>
-            `).join('');
-            dropdown.style.display = 'block';
-        });
-    }
-
-    function selectCityForMatrix(inputId, dropdownId, slot, fullName, lat, lon) {
-        const shortName = fullName.split(',')[0];
-        document.getElementById(inputId).value = shortName;
-        document.getElementById(dropdownId).style.display = 'none';
-        selectedCitiesRegistry[slot] = { name: shortName, lat: parseFloat(lat), lon: parseFloat(lon) };
-    }
-
-    async function executeCityComparison() {
-        const payload = Object.values(selectedCitiesRegistry);
-        if (payload.length < 2) {
-            alert('Please select at least 2 locations using the search dropdowns.');
-            return;
         }
 
-        const res = await fetch('/api/compare-coords', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cities: payload })
-        }).then(r => r.json());
-
-        let html = `
-            <table class="matrix-table">
-                <thead>
-                    <tr>
-                        <th>Environmental Metric</th>
-                        ${res.comparison_matrix.map(c => `<th>${c.city}</th>`).join('')}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Temperature (°C)</td>
-                        ${res.comparison_matrix.map(c => `<td style="color:var(--accent-green); font-weight:800;">${c.temperature_c}°C</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Relative Humidity</td>
-                        ${res.comparison_matrix.map(c => `<td>${c.humidity_pct}%</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Carbon Intensity</td>
-                        ${res.comparison_matrix.map(c => `<td>${c.carbon_intensity} gCO₂</td>`).join('')}
-                    </tr>
-                    <tr>
-                        <td>Vulnerability Score</td>
-                        ${res.comparison_matrix.map(c => `<td style="color:var(--accent-red); font-weight:800;">${c.vulnerability_score} / 100</td>`).join('')}
-                    </tr>
-                </tbody>
-            </table>
-        `;
-        document.getElementById('compareResultsContainer').innerHTML = html;
-    }
-
-    function setupGlobalSearchEngine() {
-        const input = document.getElementById('globalLocationSearch');
-        input.addEventListener('keypress', async function(e) {
-            if (e.key === 'Enter') {
-                const query = this.value.trim();
-                if (!query) return;
-
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`).then(r => r.json());
-                if (res.length > 0) {
-                    const item = res[0];
-                    const lat = parseFloat(item.lat);
-                    const lon = parseFloat(item.lon);
-
-                    leafletMap.setView([lat, lon], 10);
-                    document.getElementById('activeLocationTag').innerHTML = `<i class="fas fa-location-dot" style="color: var(--accent-green);"></i> ${item.display_name}`;
-
-                    const weatherData = await fetch(`/api/weather?lat=${lat}&lon=${lon}`).then(r => r.json());
-                    updateForecastChartData(weatherData);
-                } else {
-                    alert('Location not found.');
-                }
+        function updateTrendChart(historyData) {
+            if (trendChart) {
+                trendChart.data.datasets[0].data = historyData;
+                trendChart.update();
             }
+        }
+
+        // ====================================================================
+        // DATA RENDERING & SYNC ENGINE MODULE
+        // ====================================================================
+
+        function renderActiveCityData(key) {
+            const city = cityDatabase[key];
+            if (!city) return;
+
+            // Header Elements Update
+            document.getElementById('currentCityTitle').innerText = `${city.name}, ${city.country}`;
+            document.getElementById('currentCityCoords').innerText = city.coordsStr;
+            document.getElementById('currentCitySubtitle').innerText = city.subtitle;
+            document.getElementById('aiChatActiveCity').innerText = city.name;
+            document.getElementById('exportModalCity').innerText = city.name;
+
+            const riskBadge = document.getElementById('cityRiskBadge');
+            riskBadge.className = `text-sm font-bold flex items-center justify-end space-x-1 ${city.riskClass}`;
+            riskBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-xs"></i> <span>${city.riskText}</span>`;
+
+            // Fly Map View
+            if (leafletMap) {
+                leafletMap.flyTo([city.lat, city.lng], 8, { duration: 1.2 });
+            }
+
+            // Render 14 Feature Cards
+            render14MetricsGrid(city.metrics);
+
+            // Update Chart Data
+            updateTrendChart(city.history);
+
+            // Populate Comparison Table Modal Data
+            populateComparisonTable();
+
+            // Populate SHAP Modal Data
+            renderShapBreakdown(city.shap);
+
+            // Re-run Scenario Calculation
+            runSimulationEngine();
+        }
+
+        function render14MetricsGrid(metrics) {
+            const container = document.getElementById('metricsCardsContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            featureSchema.forEach(schema => {
+                const val = metrics[schema.id] || 'N/A';
+
+                const card = document.createElement('div');
+                card.className = "p-3 bg-panelbg/60 border border-bordercolor/80 rounded-xl hover:border-emerald-500/40 transition group";
+                
+                card.innerHTML = `
+                    <div class="flex items-center justify-between text-slate-400 mb-1">
+                        <span class="text-[10px] font-medium truncate">${schema.name}</span>
+                        <i class="fa-solid ${schema.icon} text-[10px] text-slate-500 group-hover:text-emerald-400 transition"></i>
+                    </div>
+                    <div class="flex items-baseline space-x-1">
+                        <span class="text-sm font-bold font-mono text-emerald-400">${val}</span>
+                        <span class="text-[10px] text-slate-500 font-mono">${schema.unit}</span>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // ====================================================================
+        // SCENARIO SIMULATOR ALGORITHMIC ENGINE
+        // ====================================================================
+
+        function runSimulationEngine() {
+            const density = parseFloat(document.getElementById('simDensity').value);
+            const green = parseFloat(document.getElementById('simGreen').value);
+            const renewable = parseFloat(document.getElementById('simRenewable').value);
+
+            // Slider Value Labels Update
+            document.getElementById('sliderValueDensity').innerText = `${density}%`;
+            document.getElementById('sliderValueGreen').innerText = `${green}%`;
+            document.getElementById('sliderValueRenewable').innerText = `${renewable}%`;
+
+            // Simulation Mathematical Modeling Logic
+            const tempShift = ((density * 0.032) - (green * 0.045)).toFixed(2);
+            const carbonRate = Math.max(15, Math.round(420 - (renewable * 3.2)));
+            const aqiScore = Math.max(10, Math.round(135 + (density * 0.38) - (green * 0.72)));
+            const sustScore = Math.min(100, Math.max(10, (75 - (tempShift * 8) + (renewable * 0.25) - (aqiScore * 0.15))).toFixed(1));
+
+            // DOM Render Output Updates
+            document.getElementById('calcTempShift').innerText = `${tempShift > 0 ? '+' : ''}${tempShift} °C`;
+            document.getElementById('calcCarbonRate').innerText = `${carbonRate} gCO₂/kWh`;
+            document.getElementById('calcAqiScore').innerText = `${aqiScore} AQI`;
+            document.getElementById('calcSustScore').innerText = `${sustScore} / 100`;
+        }
+
+        function resetScenarioSliders() {
+            document.getElementById('simDensity').value = 65;
+            document.getElementById('simGreen').value = 22;
+            document.getElementById('simRenewable').value = 30;
+            runSimulationEngine();
+        }
+
+        // ====================================================================
+        // HISTORICAL PLAYBACK CONTROLLER MODULE
+        // ====================================================================
+
+        function handleTimelineSlider(val) {
+            const daysOffset = 6 - val;
+            const label = document.getElementById('playbackDateDisplay');
+            if (daysOffset === 0) {
+                label.innerText = "Today (Live Stream)";
+                label.className = "text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-lg";
+            } else {
+                label.innerText = `Historical Stream (T-${daysOffset} Days)`;
+                label.className = "text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2.5 py-1 rounded-lg";
+            }
+        }
+
+        function toggleTimelinePlayback() {
+            const btn = document.getElementById('playPauseBtn');
+            const icon = document.getElementById('playIcon');
+            const slider = document.getElementById('timelineSlider');
+
+            if (!isPlaying) {
+                isPlaying = true;
+                icon.className = "fa-solid fa-pause text-sm";
+                btn.className = "bg-amber-600 hover:bg-amber-500 text-white w-10 h-10 rounded-xl transition flex items-center justify-center shrink-0 shadow-lg shadow-amber-950/50";
+
+                playbackInterval = setInterval(() => {
+                    let curr = parseInt(slider.value);
+                    if (curr >= 6) curr = 0;
+                    else curr++;
+                    slider.value = curr;
+                    handleTimelineSlider(curr);
+                }, 1200);
+            } else {
+                isPlaying = false;
+                clearInterval(playbackInterval);
+                icon.className = "fa-solid fa-play text-sm";
+                btn.className = "bg-emerald-600 hover:bg-emerald-500 text-white w-10 h-10 rounded-xl transition flex items-center justify-center shrink-0 shadow-lg shadow-emerald-950/50";
+            }
+        }
+
+        // ====================================================================
+        // SEARCH ENGINE MODULE
+        // ====================================================================
+
+        function executeSearch() {
+            const input = document.getElementById('globalCitySearch');
+            const query = input.value.trim().toLowerCase();
+            
+            if (!query) return;
+
+            const foundKey = Object.keys(cityDatabase).find(k => 
+                cityDatabase[k].name.toLowerCase().includes(query) || 
+                cityDatabase[k].country.toLowerCase().includes(query)
+            );
+
+            if (foundKey) {
+                activeCityKey = foundKey;
+                renderActiveCityData(foundKey);
+                document.getElementById('clearSearchBtn').classList.remove('hidden');
+            } else {
+                alert(`No telemetry dataset found for search query: '${query}'. Try 'Karachi', 'London', 'Tokyo', 'New York', or 'Dubai'.`);
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('globalCitySearch').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+        }
+
+        // Handle Enter key in Search Input
+        document.getElementById('globalCitySearch')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') executeSearch();
         });
-    }
 
-    async function submitEmailSubscription() {
-        const email = document.getElementById('subEmailField').value.trim();
-        const country = document.getElementById('subCountryField').value.trim();
+        // ====================================================================
+        // SHAP & COMPARISON MATRIX MODALS RENDER MODULES
+        // ====================================================================
 
-        if (!email) { alert('Please enter a valid email address.'); return; }
+        function populateComparisonTable() {
+            const tbody = document.getElementById('comparisonTableBody');
+            if (!tbody) return;
 
-        const res = await fetch(`/api/subscribe?email=${encodeURIComponent(email)}&country=${encodeURIComponent(country)}`, {
-            method: 'POST'
-        }).then(r => r.json());
+            tbody.innerHTML = '';
 
-        alert(`✅ Subscription Confirmed! Real alert notification sent to ${email}.`);
-        closeSubscribeModal();
-    }
-</script>
+            featureSchema.forEach(schema => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-panelbg/50 transition border-b border-bordercolor/40";
 
+                let cellsHTML = `<td class="p-3 text-slate-300 font-sans font-medium flex items-center space-x-2">
+                    <i class="fa-solid ${schema.icon} text-slate-500 text-xs"></i>
+                    <span>${schema.name}</span>
+                </td>`;
+
+                ['karachi', 'london', 'tokyo', 'newyork', 'dubai'].forEach(cityKey => {
+                    const city = cityDatabase[cityKey];
+                    const val = city.metrics[schema.id] || '-';
+                    cellsHTML += `<td class="p-3">${val} <span class="text-[10px] text-slate-500">${schema.unit}</span></td>`;
+                });
+
+                tr.innerHTML = cellsHTML;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderShapBreakdown(shapList) {
+            const container = document.getElementById('shapBarsContainer');
+            if (!container || !shapList) return;
+
+            container.innerHTML = '';
+
+            shapList.forEach(item => {
+                const box = document.createElement('div');
+                box.className = "space-y-1";
+
+                box.innerHTML = `
+                    <div class="flex justify-between text-xs text-slate-300 font-medium">
+                        <span>${item.name}</span>
+                        <span class="font-mono ${item.color.replace('bg-', 'text-')} font-bold">${item.impact} SHAP Score</span>
+                    </div>
+                    <div class="w-full bg-darkbg h-2 rounded-full overflow-hidden border border-bordercolor">
+                        <div class="${item.color} h-full rounded-full" style="width: ${item.barWidth}"></div>
+                    </div>
+                `;
+
+                container.appendChild(box);
+            });
+        }
+
+        // ====================================================================
+        // AI ASSISTANT CHAT ENGINE MODULE
+        // ====================================================================
+
+        function sendAiMessage() {
+            const input = document.getElementById('aiChatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const chatBox = document.getElementById('aiChatBox');
+            const activeCity = cityDatabase[activeCityKey];
+
+            // Render User Prompt Bubble
+            chatBox.innerHTML += `
+                <div class="bg-emerald-950/80 border border-emerald-800/60 p-3 rounded-xl text-emerald-200 ml-auto max-w-[85%] space-y-1">
+                    <p class="font-semibold text-emerald-400 text-[10px]">You</p>
+                    <p>${msg}</p>
+                </div>
+            `;
+
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Generate Automated Intelligence Response
+            setTimeout(() => {
+                let aiReply = `Analyzing environmental indicators for ${activeCity.name}... Current surface temperature stands at ${activeCity.metrics.temperature} °C with an Air Quality Index of ${activeCity.metrics.air_quality_index}. Recommended urban resilience priority: expansion of green canopy cover to reduce local heat island trapping.`;
+                
+                if (msg.toLowerCase().includes('heat') || msg.toLowerCase().includes('temperature')) {
+                    aiReply = `Thermal analysis for ${activeCity.name} shows a surface temperature of ${activeCity.metrics.temperature} °C. The Urban Heat Island layer contributes significantly to heat retention during peak sunlight hours.`;
+                } else if (msg.toLowerCase().includes('air') || msg.toLowerCase().includes('aqi')) {
+                    aiReply = `${activeCity.name} currently records an AQI of ${activeCity.metrics.air_quality_index}. Particulate matter density is affected by local traffic congestion (${activeCity.metrics.traffic_congestion}% delay index).`;
+                }
+
+                chatBox.innerHTML += `
+                    <div class="bg-panelbg/90 border border-bordercolor p-3 rounded-xl text-slate-300 max-w-[90%] space-y-1">
+                        <p class="font-semibold text-emerald-400 text-[10px] flex items-center">
+                            <i class="fa-solid fa-robot mr-1"></i> EcoPulse Assistant
+                        </p>
+                        <p>${aiReply}</p>
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 600);
+        }
+
+        function handleAiChatKey(e) {
+            if (e.key === 'Enter') sendAiMessage();
+        }
+
+        // ====================================================================
+        // EXPORT MODAL & SYSTEM UTILITIES MODULE
+        // ====================================================================
+
+        function selectExportFormat(fmt) {
+            selectedExportFormat = fmt;
+            ['Pdf', 'Csv', 'Json'].forEach(f => {
+                const btn = document.getElementById(`fmt${f}`);
+                if (f.toLowerCase() === fmt) {
+                    btn.className = "p-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-semibold text-center";
+                } else {
+                    btn.className = "p-2.5 rounded-xl border border-bordercolor bg-panelbg text-slate-300 font-semibold text-center";
+                }
+            });
+        }
+
+        function triggerExportDownload() {
+            const city = cityDatabase[activeCityKey];
+            alert(`Generating ${selectedExportFormat.toUpperCase()} telemetry report for ${city.name}, ${city.country}...\nDownload initiated successfully.`);
+            closeModal('exportModal');
+        }
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        }
+    </script>
 </body>
 </html>
