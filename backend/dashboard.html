@@ -562,7 +562,7 @@
     </main>
 
     <!-- ===================================================================== -->
-    <!-- 3. MODAL DIALOGS (COMPARATIVE MATRIX, SHAP, EXPORT)                  -->
+    <!-- 3. MODAL DIALOGS (COMPARATIVE MATRIX, SHAP, EXPORT)                   -->
     <!-- ===================================================================== -->
 
     <!-- Multi-City Comparison Matrix Modal -->
@@ -604,24 +604,24 @@
 
             <div class="pt-4 border-t border-bordercolor flex justify-between items-center text-xs text-slate-400">
                 <span>Displaying 14 indicators across 5 primary monitoring centers</span>
-                <button onclick="closeModal('compareModal')" class="bg-panelbg hover:bg-slate-800 text-slate-200 border border-bordercolor px-4 py-2 rounded-xl transition">
+                <button onclick="closeModal('compareModal')" class="bg-panelbg hover:bg-slate-800 border border-bordercolor px-4 py-2 rounded-xl font-semibold text-slate-200 transition">
                     Close Matrix
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- SHAP Explainability Breakdown Modal -->
+    <!-- SHAP AI Explainability Modal -->
     <div id="shapModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass-card max-w-2xl w-full p-6 flex flex-col max-h-[90vh] overflow-hidden">
-            <div class="flex items-center justify-between pb-4 border-b border-bordercolor">
+        <div class="glass-card max-w-2xl w-full p-6 flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between pb-4 border-b border-bordercolor mb-4">
                 <div class="flex items-center space-x-3">
                     <div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
                         <i class="fa-solid fa-brain text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold text-slate-100">SHAP Feature Impact Breakdown</h3>
-                        <p class="text-xs text-slate-400">Explainable AI attribution scores driving current climate risk rating</p>
+                        <h3 class="text-base font-bold text-slate-100">SHAP Explainable AI Intelligence</h3>
+                        <p class="text-xs text-slate-400">Feature importance vector weights for Urban Heat Island risk prediction</p>
                     </div>
                 </div>
                 <button onclick="closeModal('shapModal')" class="text-slate-400 hover:text-white transition">
@@ -629,20 +629,21 @@
                 </button>
             </div>
 
-            <div class="py-4 space-y-4 overflow-y-auto flex-1">
-                <p class="text-xs text-slate-300">
-                    SHAP (SHapley Additive exPlanations) quantifies the positive or negative contribution of each environmental feature toward the overall calculated Eco Risk Index score.
+            <div class="space-y-4 overflow-y-auto flex-1 pr-2 text-xs">
+                <p class="text-slate-300">
+                    The chart below renders the **SHAP (SHapley Additive exPlanations)** values contributing to the current UHI Risk Index forecast. Positive values indicate factors pushing risk higher, while negative values offset risk.
                 </p>
 
-                <!-- SHAP Bars Container -->
-                <div class="space-y-3" id="shapBarsContainer">
-                    <!-- Populated via Javascript -->
+                <!-- SHAP Feature Bar Breakdown -->
+                <div class="space-y-3 font-mono" id="shapBarsContainer">
+                    <!-- Dynamic Bars Populated via JS -->
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-bordercolor flex justify-end">
-                <button onclick="closeModal('shapModal')" class="bg-panelbg hover:bg-slate-800 text-slate-200 border border-bordercolor px-4 py-2 rounded-xl text-xs transition">
-                    Close Explanation
+            <div class="pt-4 border-t border-bordercolor mt-4 flex justify-between items-center text-xs text-slate-400">
+                <span>Base Model Value: 0.42 • Output Value: 0.74</span>
+                <button onclick="closeModal('shapModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-semibold transition">
+                    Acknowledge
                 </button>
             </div>
         </div>
@@ -651,47 +652,53 @@
     <!-- Export Report Modal -->
     <div id="exportModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-card max-w-md w-full p-6 flex flex-col">
-            <div class="flex items-center justify-between pb-4 border-b border-bordercolor">
-                <h3 class="text-base font-bold text-slate-100 flex items-center">
-                    <i class="fa-solid fa-file-export text-emerald-400 mr-2"></i> Export Telemetry Report
-                </h3>
+            <div class="flex items-center justify-between pb-4 border-b border-bordercolor mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                        <i class="fa-solid fa-file-pdf text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-100">Export Climate Telemetry</h3>
+                        <p class="text-xs text-slate-400">Generate executive summary reports</p>
+                    </div>
+                </div>
                 <button onclick="closeModal('exportModal')" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                    <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
 
-            <div class="py-4 space-y-4 text-xs">
-                <p class="text-slate-300">Select export parameters for <span id="exportModalCity" class="text-emerald-400 font-bold">Karachi</span>:</p>
-
-                <div class="space-y-2">
-                    <label class="block text-slate-400 font-medium">Format Selection</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="selectExportFormat('pdf')" id="fmtPdf" class="p-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-semibold text-center">PDF</button>
-                        <button onclick="selectExportFormat('csv')" id="fmtCsv" class="p-2.5 rounded-xl border border-bordercolor bg-panelbg text-slate-300 font-semibold text-center">CSV</button>
-                        <button onclick="selectExportFormat('json')" id="fmtJson" class="p-2.5 rounded-xl border border-bordercolor bg-panelbg text-slate-300 font-semibold text-center">JSON</button>
-                    </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Select Export Format</label>
+                    <select id="exportFormatSelect" class="w-full bg-darkbg border border-bordercolor rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="pdf">Comprehensive Executive Report (.PDF)</option>
+                        <option value="csv">Raw Telemetry Dataset (.CSV)</option>
+                        <option value="geojson">GIS GeoJSON Layer Collection (.GEOJSON)</option>
+                    </select>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="block text-slate-400 font-medium">Include Sub-Components</label>
-                    <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                    <label class="block text-slate-300 font-semibold">Include Sections</label>
+                    <label class="flex items-center space-x-2 text-slate-400">
                         <input type="checkbox" checked class="accent-emerald-500 rounded">
-                        <span>All 14 Feature Indicators</span>
+                        <span>14 Feature Metric Breakdown</span>
                     </label>
-                    <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                    <label class="flex items-center space-x-2 text-slate-400">
                         <input type="checkbox" checked class="accent-emerald-500 rounded">
-                        <span>7-Day Historical Data Series</span>
+                        <span>SHAP Model Explainability Vectors</span>
                     </label>
-                    <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                    <label class="flex items-center space-x-2 text-slate-400">
                         <input type="checkbox" checked class="accent-emerald-500 rounded">
-                        <span>SHAP Model Explainability Graph</span>
+                        <span>Scenario Simulation Projections</span>
                     </label>
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-bordercolor flex space-x-2 justify-end">
-                <button onclick="closeModal('exportModal')" class="bg-panelbg hover:bg-slate-800 text-slate-300 border border-bordercolor px-4 py-2 rounded-xl text-xs transition">Cancel</button>
-                <button onclick="triggerExportDownload()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5">
+            <div class="pt-6 border-t border-bordercolor mt-6 flex justify-end space-x-3">
+                <button onclick="closeModal('exportModal')" class="bg-panelbg hover:bg-slate-800 border border-bordercolor px-4 py-2 rounded-xl text-xs font-semibold text-slate-300">
+                    Cancel
+                </button>
+                <button onclick="triggerDownloadReport()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-emerald-950/50 flex items-center space-x-2">
                     <i class="fa-solid fa-download"></i>
                     <span>Download Report</span>
                 </button>
@@ -699,500 +706,449 @@
         </div>
     </div>
 
-    <!-- Footer Banner -->
-    <footer class="border-t border-bordercolor bg-surface/60 px-6 py-3.5 text-center text-xs text-slate-500 flex flex-wrap justify-between items-center gap-2">
-        <p>EcoPulse Analytics System © 2026. Built with Python, GIS & Machine Learning.</p>
-        <div class="flex items-center space-x-4">
-            <span class="hover:text-slate-300 cursor-pointer">Documentation</span>
-            <span class="hover:text-slate-300 cursor-pointer">API Endpoint</span>
-            <span class="hover:text-slate-300 cursor-pointer">System Status</span>
-        </div>
-    </footer>
-
     <!-- ===================================================================== -->
-    <!-- 4. DASHBOARD JAVASCRIPT ENGINE & DATA MANAGEMENT MODULES              -->
+    <!-- 4. JAVASCRIPT APPLICATION LOGIC ENGINE -->
     <!-- ===================================================================== -->
     <script>
-        // ====================================================================
-        // GLOBAL STATE & DATA STORAGE
-        // ====================================================================
+        /* ==========================================================================
+           4.1 GLOBAL DATA MODELS & STATE MANAGEMENT
+           ========================================================================== */
 
-        let leafletMap = null;
-        let trendChart = null;
-        let selectedExportFormat = 'pdf';
-        let playbackInterval = null;
-        let isPlaying = false;
-        let activeCityKey = "karachi";
-
-        // 10 Map Layers State
-        const mapLayersState = {
-            'layer_01': { name: 'Weather Radar', icon: '🌤️', active: true },
-            'layer_02': { name: 'Wildfire Hotspots', icon: '🔥', active: false },
-            'layer_03': { name: 'Marine Heatwaves', icon: '🌊', active: false },
-            'layer_04': { name: 'Carbon Intensity', icon: '⚡', active: true },
-            'layer_05': { name: 'Turbulence Risk', icon: '✈️', active: false },
-            'layer_06': { name: 'Pollen Forecast', icon: '🌿', active: false },
-            'layer_07': { name: 'Urban Heat Island', icon: '🏙️', active: true },
-            'layer_08': { name: 'Sovereign Vulnerability', icon: '🛡️', active: false },
-            'layer_09': { name: 'Extreme Alerts', icon: '⚠️', active: true },
-            'layer_10': { name: 'City Markers', icon: '📍', active: true }
-        };
-
-        // Complete 14 Feature Indicators Definitions
-        const featureSchema = [
-            { id: 'temperature', name: 'Surface Temp', unit: '°C', icon: 'fa-temperature-half' },
-            { id: 'carbon_intensity', name: 'Carbon Intensity', unit: 'gCO₂/kWh', icon: 'fa-bolt' },
-            { id: 'air_quality_index', name: 'Air Quality (AQI)', unit: 'AQI', icon: 'fa-wind' },
-            { id: 'humidity', name: 'Relative Humidity', unit: '%', icon: 'fa-droplet' },
-            { id: 'wind_speed', name: 'Wind Velocity', unit: 'km/h', icon: 'fa-compass' },
-            { id: 'precipitation', name: 'Precipitation Risk', unit: '%', icon: 'fa-cloud-showers-heavy' },
-            { id: 'eco_risk_score', name: 'Eco Risk Score', unit: '/10', icon: 'fa-triangle-exclamation' },
-            { id: 'green_cover', name: 'Green Cover Ratio', unit: '%', icon: 'fa-tree' },
-            { id: 'renewable_energy', name: 'Renewable Share', unit: '%', icon: 'fa-solar-panel' },
-            { id: 'waste_management', name: 'Recycling Efficiency', unit: '/100', icon: 'fa-recycle' },
-            { id: 'traffic_congestion', name: 'Traffic Delay Index', unit: '%', icon: 'fa-car' },
-            { id: 'solar_potential', name: 'Solar Yield Potential', unit: 'kWh/m²', icon: 'fa-sun' },
-            { id: 'water_stress', name: 'Water Stress Level', unit: '%', icon: 'fa-glass-water' },
-            { id: 'resilience_index', name: 'Climate Resilience', unit: '/100', icon: 'fa-shield-halved' }
-        ];
-
-        // Comprehensive Multi-City Database
-        const cityDatabase = {
-            karachi: {
-                name: "Karachi",
-                country: "Pakistan",
-                lat: 24.8607,
-                lng: 67.0011,
-                coordsStr: "24.8607° N, 67.0011° E",
+        // 5 Primary Target Cities Telemetry Data Dictionary
+        const CITIES_DATA = {
+            "Karachi": {
+                name: "Karachi, Pakistan",
+                coords: [24.8607, 67.0011],
                 subtitle: "Primary Coastal Urban Agglomeration • Climate Hazard Zone 3",
                 riskText: "7.4 / 10 (High)",
                 riskClass: "text-amber-400",
+                tempHistory: [31.2, 32.5, 33.1, 32.8, 34.0, 33.6, 34.2],
                 metrics: {
-                    temperature: "32.4",
-                    carbon_intensity: "345",
-                    air_quality_index: "128",
-                    humidity: "68",
-                    wind_speed: "16.5",
-                    precipitation: "15",
-                    eco_risk_score: "7.4",
-                    green_cover: "18",
-                    renewable_energy: "28",
-                    waste_management: "38",
-                    traffic_congestion: "74",
-                    solar_potential: "6.2",
-                    water_stress: "82",
-                    resilience_index: "52"
-                },
-                history: [29.5, 30.1, 31.4, 31.0, 32.8, 33.2, 32.4],
-                shap: [
-                    { name: 'Surface Heat Island', impact: '+0.42', barWidth: '84%', color: 'bg-amber-400' },
-                    { name: 'Particulate Density (AQI)', impact: '+0.28', barWidth: '68%', color: 'bg-rose-400' },
-                    { name: 'High Water Stress Index', impact: '+0.21', barWidth: '52%', color: 'bg-orange-400' },
-                    { name: 'Urban Tree Canopy Shortfall', impact: '-0.15', barWidth: '38%', color: 'bg-emerald-400' }
-                ]
+                    temp: { label: "Surface Temperature", val: "34.2 °C", badge: "+2.1°", status: "warning", icon: "fa-temperature-high" },
+                    aqi: { label: "Air Quality Index", val: "154 AQI", badge: "Unhealthy", status: "danger", icon: "fa-wind" },
+                    humidity: { label: "Relative Humidity", val: "68 %", badge: "High", status: "warning", icon: "fa-droplet" },
+                    uhi: { label: "UHI Heat Intensity", val: "+4.2 °C", badge: "Severe", status: "danger", icon: "fa-fire" },
+                    co2: { label: "Carbon Emissions", val: "412 ppm", badge: "Elevated", status: "warning", icon: "fa-smog" },
+                    green: { label: "Vegetation (NDVI)", val: "0.18", badge: "Critical", status: "danger", icon: "fa-tree" },
+                    pop: { label: "Population Density", val: "24,000 /km²", badge: "Dense", status: "warning", icon: "fa-users" },
+                    solar: { label: "Solar Irradiance", val: "5.8 kWh/m²", badge: "Optimal", status: "positive", icon: "fa-sun" },
+                    wind: { label: "Wind Velocity", val: "14.2 km/h", badge: "Moderate", status: "info", icon: "fa-compass" },
+                    elevation: { label: "Mean Elevation", val: "8 m", badge: "Low Coastal", status: "danger", icon: "fa-water" },
+                    albedo: { label: "Surface Albedo", val: "0.14", badge: "Low Reflection", status: "warning", icon: "fa-circle-half-stroke" },
+                    water: { label: "Surface Water Ratio", val: "4.2 %", badge: "Deficit", status: "danger", icon: "fa-faucet-drip" },
+                    built: { label: "Impervious Concrete", val: "76 %", badge: "High Build", status: "danger", icon: "fa-building" },
+                    energy: { label: "Renewable Share", val: "12 %", badge: "Low", status: "danger", icon: "fa-bolt" }
+                }
             },
-            london: {
-                name: "London",
-                country: "United Kingdom",
-                lat: 51.5074,
-                lng: -0.1278,
-                coordsStr: "51.5074° N, 0.1278° W",
-                subtitle: "Temperate Maritime Zone • High Flood Risk Defense Grid",
-                riskText: "3.8 / 10 (Low)",
+            "London": {
+                name: "London, United Kingdom",
+                coords: [51.5074, -0.1278],
+                subtitle: "Temperate Maritime Metropolitan • Climate Hazard Zone 1",
+                riskText: "3.2 / 10 (Low)",
                 riskClass: "text-emerald-400",
+                tempHistory: [18.2, 19.0, 17.5, 18.8, 20.1, 19.4, 21.0],
                 metrics: {
-                    temperature: "18.2",
-                    carbon_intensity: "142",
-                    air_quality_index: "42",
-                    humidity: "75",
-                    wind_speed: "22.0",
-                    precipitation: "60",
-                    eco_risk_score: "3.8",
-                    green_cover: "41",
-                    renewable_energy: "58",
-                    waste_management: "78",
-                    traffic_congestion: "52",
-                    solar_potential: "3.2",
-                    water_stress: "32",
-                    resilience_index: "84"
-                },
-                history: [16.0, 16.5, 17.1, 18.0, 17.8, 18.5, 18.2],
-                shap: [
-                    { name: 'Clean Energy Grid', impact: '-0.35', barWidth: '70%', color: 'bg-emerald-400' },
-                    { name: 'Dense Vegetation Cover', impact: '-0.25', barWidth: '50%', color: 'bg-teal-400' },
-                    { name: 'Flood Surge Potential', impact: '+0.18', barWidth: '36%', color: 'bg-cyan-400' },
-                    { name: 'Vehicle Congestion', impact: '+0.12', barWidth: '24%', color: 'bg-amber-400' }
-                ]
+                    temp: { label: "Surface Temperature", val: "21.0 °C", badge: "Normal", status: "positive", icon: "fa-temperature-high" },
+                    aqi: { label: "Air Quality Index", val: "42 AQI", badge: "Good", status: "positive", icon: "fa-wind" },
+                    humidity: { label: "Relative Humidity", val: "58 %", badge: "Normal", status: "positive", icon: "fa-droplet" },
+                    uhi: { label: "UHI Heat Intensity", val: "+1.8 °C", badge: "Mild", status: "positive", icon: "fa-fire" },
+                    co2: { label: "Carbon Emissions", val: "385 ppm", badge: "Nominal", status: "positive", icon: "fa-smog" },
+                    green: { label: "Vegetation (NDVI)", val: "0.45", badge: "Good", status: "positive", icon: "fa-tree" },
+                    pop: { label: "Population Density", val: "5,700 /km²", badge: "Moderate", status: "info", icon: "fa-users" },
+                    solar: { label: "Solar Irradiance", val: "3.2 kWh/m²", badge: "Low", status: "warning", icon: "fa-sun" },
+                    wind: { label: "Wind Velocity", val: "18.5 km/h", badge: "Breezy", status: "info", icon: "fa-compass" },
+                    elevation: { label: "Mean Elevation", val: "35 m", badge: "Safe", status: "positive", icon: "fa-water" },
+                    albedo: { label: "Surface Albedo", val: "0.22", badge: "Good", status: "positive", icon: "fa-circle-half-stroke" },
+                    water: { label: "Surface Water Ratio", val: "8.5 %", badge: "Optimal", status: "positive", icon: "fa-faucet-drip" },
+                    built: { label: "Impervious Concrete", val: "48 %", badge: "Moderate", status: "info", icon: "fa-building" },
+                    energy: { label: "Renewable Share", val: "44 %", badge: "High", status: "positive", icon: "fa-bolt" }
+                }
             },
-            tokyo: {
-                name: "Tokyo",
-                country: "Japan",
-                lat: 35.6762,
-                lng: 139.6503,
-                coordsStr: "35.6762° N, 139.6503° E",
-                subtitle: "Seismic & Typhoon Agglomeration • Advanced Mitigation Infrastructure",
-                riskText: "5.1 / 10 (Moderate)",
-                riskClass: "text-cyan-400",
-                metrics: {
-                    temperature: "26.8",
-                    carbon_intensity: "210",
-                    air_quality_index: "55",
-                    humidity: "70",
-                    wind_speed: "12.8",
-                    precipitation: "40",
-                    eco_risk_score: "5.1",
-                    green_cover: "30",
-                    renewable_energy: "42",
-                    waste_management: "88",
-                    traffic_congestion: "60",
-                    solar_potential: "4.8",
-                    water_stress: "45",
-                    resilience_index: "91"
-                },
-                history: [24.2, 25.0, 25.8, 26.1, 27.0, 26.4, 26.8],
-                shap: [
-                    { name: 'High Waste Recycling Rate', impact: '-0.30', barWidth: '60%', color: 'bg-emerald-400' },
-                    { name: 'Extreme Density Heat Trapping', impact: '+0.25', barWidth: '50%', color: 'bg-amber-400' },
-                    { name: 'Coastal Storm Surge Vulnerability', impact: '+0.18', barWidth: '36%', color: 'bg-rose-400' },
-                    { name: 'Efficient Public Transit', impact: '-0.14', barWidth: '28%', color: 'bg-cyan-400' }
-                ]
-            },
-            newyork: {
-                name: "New York",
-                country: "United States",
-                lat: 40.7128,
-                lng: -74.0060,
-                coordsStr: "40.7128° N, 74.0060° W",
-                subtitle: "Atlantic Coastal Megacity • High Urban Heat Island Profile",
+            "Tokyo": {
+                name: "Tokyo, Japan",
+                coords: [35.6762, 139.6503],
+                subtitle: "High-Density Pacific Megacity • Climate Hazard Zone 2",
                 riskText: "5.8 / 10 (Moderate)",
                 riskClass: "text-amber-300",
+                tempHistory: [26.0, 27.2, 28.1, 27.9, 29.0, 28.4, 29.8],
                 metrics: {
-                    temperature: "25.1",
-                    carbon_intensity: "280",
-                    air_quality_index: "68",
-                    humidity: "62",
-                    wind_speed: "18.4",
-                    precipitation: "30",
-                    eco_risk_score: "5.8",
-                    green_cover: "27",
-                    renewable_energy: "35",
-                    waste_management: "62",
-                    traffic_congestion: "81",
-                    solar_potential: "4.5",
-                    water_stress: "50",
-                    resilience_index: "76"
-                },
-                history: [22.8, 23.5, 24.1, 24.8, 25.5, 25.0, 25.1],
-                shap: [
-                    { name: 'Traffic Vehicle Emissions', impact: '+0.32', barWidth: '64%', color: 'bg-rose-400' },
-                    { name: 'Concrete Surface Albedo', impact: '+0.22', barWidth: '44%', color: 'bg-amber-400' },
-                    { name: 'Moderate Grid Decarbonization', impact: '-0.18', barWidth: '36%', color: 'bg-emerald-400' },
-                    { name: 'Harbor Surge Vulnerability', impact: '+0.14', barWidth: '28%', color: 'bg-cyan-400' }
-                ]
+                    temp: { label: "Surface Temperature", val: "29.8 °C", badge: "Elevated", status: "warning", icon: "fa-temperature-high" },
+                    aqi: { label: "Air Quality Index", val: "68 AQI", badge: "Moderate", status: "info", icon: "fa-wind" },
+                    humidity: { label: "Relative Humidity", val: "72 %", badge: "High", status: "warning", icon: "fa-droplet" },
+                    uhi: { label: "UHI Heat Intensity", val: "+3.5 °C", badge: "High", status: "warning", icon: "fa-fire" },
+                    co2: { label: "Carbon Emissions", val: "398 ppm", badge: "Moderate", status: "info", icon: "fa-smog" },
+                    green: { label: "Vegetation (NDVI)", val: "0.28", badge: "Moderate", status: "info", icon: "fa-tree" },
+                    pop: { label: "Population Density", val: "15,000 /km²", badge: "High", status: "warning", icon: "fa-users" },
+                    solar: { label: "Solar Irradiance", val: "4.6 kWh/m²", badge: "Moderate", status: "info", icon: "fa-sun" },
+                    wind: { label: "Wind Velocity", val: "11.0 km/h", badge: "Calm", status: "positive", icon: "fa-compass" },
+                    elevation: { label: "Mean Elevation", val: "40 m", badge: "Moderate", status: "info", icon: "fa-water" },
+                    albedo: { label: "Surface Albedo", val: "0.18", badge: "Moderate", status: "info", icon: "fa-circle-half-stroke" },
+                    water: { label: "Surface Water Ratio", val: "6.0 %", badge: "Moderate", status: "info", icon: "fa-faucet-drip" },
+                    built: { label: "Impervious Concrete", val: "68 %", badge: "High Build", status: "warning", icon: "fa-building" },
+                    energy: { label: "Renewable Share", val: "28 %", badge: "Moderate", status: "info", icon: "fa-bolt" }
+                }
             },
-            dubai: {
-                name: "Dubai",
-                country: "United Arab Emirates",
-                lat: 25.2048,
-                lng: 55.2708,
-                coordsStr: "25.2048° N, 55.2708° E",
-                subtitle: "Hyper-Arid Desert Agglomeration • Extreme Thermal Exposure",
-                riskText: "8.6 / 10 (Critical)",
-                riskClass: "text-rose-500",
+            "New York": {
+                name: "New York, United States",
+                coords: [40.7128, -74.0060],
+                subtitle: "Atlantic Coastal Megacity • Climate Hazard Zone 2",
+                riskText: "6.1 / 10 (Moderate)",
+                riskClass: "text-amber-400",
+                tempHistory: [24.5, 25.0, 26.2, 27.1, 26.8, 28.0, 28.5],
                 metrics: {
-                    temperature: "41.5",
-                    carbon_intensity: "480",
-                    air_quality_index: "145",
-                    humidity: "52",
-                    wind_speed: "14.0",
-                    precipitation: "5",
-                    eco_risk_score: "8.6",
-                    green_cover: "12",
-                    renewable_energy: "22",
-                    waste_management: "55",
-                    traffic_congestion: "65",
-                    solar_potential: "7.8",
-                    water_stress: "95",
-                    resilience_index: "64"
-                },
-                history: [38.5, 39.2, 40.0, 41.1, 42.0, 41.8, 41.5],
-                shap: [
-                    { name: 'Extreme Thermal Ambient Index', impact: '+0.58', barWidth: '95%', color: 'bg-rose-500' },
-                    { name: 'High Desalination Water Stress', impact: '+0.34', barWidth: '68%', color: 'bg-orange-400' },
-                    { name: 'High Solar Irradiance Potential', impact: '-0.22', barWidth: '44%', color: 'bg-emerald-400' },
-                    { name: 'Arid Canopy Deficiency', impact: '+0.18', barWidth: '36%', color: 'bg-amber-400' }
-                ]
+                    temp: { label: "Surface Temperature", val: "28.5 °C", badge: "Warm", status: "warning", icon: "fa-temperature-high" },
+                    aqi: { label: "Air Quality Index", val: "82 AQI", badge: "Moderate", status: "info", icon: "fa-wind" },
+                    humidity: { label: "Relative Humidity", val: "62 %", badge: "Moderate", status: "info", icon: "fa-droplet" },
+                    uhi: { label: "UHI Heat Intensity", val: "+3.1 °C", badge: "High", status: "warning", icon: "fa-fire" },
+                    co2: { label: "Carbon Emissions", val: "405 ppm", badge: "Elevated", status: "warning", icon: "fa-smog" },
+                    green: { label: "Vegetation (NDVI)", val: "0.31", badge: "Moderate", status: "info", icon: "fa-tree" },
+                    pop: { label: "Population Density", val: "11,000 /km²", badge: "High", status: "warning", icon: "fa-users" },
+                    solar: { label: "Solar Irradiance", val: "4.8 kWh/m²", badge: "Good", status: "positive", icon: "fa-sun" },
+                    wind: { label: "Wind Velocity", val: "16.0 km/h", badge: "Moderate", status: "info", icon: "fa-compass" },
+                    elevation: { label: "Mean Elevation", val: "10 m", badge: "Coastal Risk", status: "warning", icon: "fa-water" },
+                    albedo: { label: "Surface Albedo", val: "0.16", badge: "Low", status: "warning", icon: "fa-circle-half-stroke" },
+                    water: { label: "Surface Water Ratio", val: "14.0 %", badge: "High Coastal", status: "positive", icon: "fa-faucet-drip" },
+                    built: { label: "Impervious Concrete", val: "64 %", badge: "High Build", status: "warning", icon: "fa-building" },
+                    energy: { label: "Renewable Share", val: "32 %", badge: "Moderate", status: "info", icon: "fa-bolt" }
+                }
+            },
+            "Dubai": {
+                name: "Dubai, United Arab Emirates",
+                coords: [25.2048, 55.2708],
+                subtitle: "Arid Desert Coastal Metropolis • Climate Hazard Zone 4",
+                riskText: "8.9 / 10 (Critical)",
+                riskClass: "text-rose-500",
+                tempHistory: [38.5, 39.2, 40.0, 41.1, 40.5, 42.0, 42.8],
+                metrics: {
+                    temp: { label: "Surface Temperature", val: "42.8 °C", badge: "Extreme", status: "danger", icon: "fa-temperature-high" },
+                    aqi: { label: "Air Quality Index", val: "185 AQI", badge: "Unhealthy", status: "danger", icon: "fa-wind" },
+                    humidity: { label: "Relative Humidity", val: "52 %", badge: "Moderate", status: "info", icon: "fa-droplet" },
+                    uhi: { label: "UHI Heat Intensity", val: "+5.8 °C", badge: "Extreme", status: "danger", icon: "fa-fire" },
+                    co2: { label: "Carbon Emissions", val: "448 ppm", badge: "Critical", status: "danger", icon: "fa-smog" },
+                    green: { label: "Vegetation (NDVI)", val: "0.08", badge: "Deficit", status: "danger", icon: "fa-tree" },
+                    pop: { label: "Population Density", val: "1,100 /km²", badge: "Low-Sprawl", status: "positive", icon: "fa-users" },
+                    solar: { label: "Solar Irradiance", val: "7.2 kWh/m²", badge: "Peak Solar", status: "positive", icon: "fa-sun" },
+                    wind: { label: "Wind Velocity", val: "12.8 km/h", badge: "Moderate", status: "info", icon: "fa-compass" },
+                    elevation: { label: "Mean Elevation", val: "5 m", badge: "Critical Coast", status: "danger", icon: "fa-water" },
+                    albedo: { label: "Surface Albedo", val: "0.32", badge: "Desert High", status: "positive", icon: "fa-circle-half-stroke" },
+                    water: { label: "Surface Water Ratio", val: "1.2 %", badge: "Arid Deficit", status: "danger", icon: "fa-faucet-drip" },
+                    built: { label: "Impervious Concrete", val: "82 %", badge: "Critical", status: "danger", icon: "fa-building" },
+                    energy: { label: "Renewable Share", val: "18 %", badge: "Low", status: "danger", icon: "fa-bolt" }
+                }
             }
         };
 
-        // ====================================================================
-        // INITIALIZATION LIFECYCLE HOOKS
-        // ====================================================================
+        // 10 Spatial GIS Overlay Layer Configurations
+        const MAP_LAYERS = [
+            { id: "layer_uhi", name: "UHI Heat Islands", icon: "fa-fire", active: true, color: "#f43f5e" },
+            { id: "layer_ndvi", name: "Vegetation Canopy", icon: "fa-tree", active: true, color: "#10b981" },
+            { id: "layer_aqi", name: "AQI Dispersion", icon: "fa-wind", active: false, color: "#06b6d4" },
+            { id: "layer_built", name: "Built Surface Density", icon: "fa-building", active: false, color: "#f59e0b" },
+            { id: "layer_flood", name: "Coastal Inundation", icon: "fa-water", active: false, color: "#3b82f6" },
+            { id: "layer_carbon", name: "CO₂ Plumes", icon: "fa-smog", active: false, color: "#8b5cf6" },
+            { id: "layer_albedo", name: "Surface Albedo", icon: "fa-circle-half-stroke", active: false, color: "#ec4899" },
+            { id: "layer_solar", name: "Solar Potential", icon: "fa-sun", active: false, color: "#eab308" },
+            { id: "layer_cool", name: "Cool Roof Corridors", icon: "fa-snowflake", active: false, color: "#14b8a6" },
+            { id: "layer_grid", name: "Energy Grid Load", icon: "fa-bolt", active: false, color: "#a855f7" }
+        ];
 
-        document.addEventListener("DOMContentLoaded", function () {
-            initializeMapEngine();
-            initializeTrendChart();
-            renderLayerButtons();
-            renderActiveCityData(activeCityKey);
+        // Global State Variables
+        let activeCityKey = "Karachi";
+        let mapInstance = null;
+        let mapOpacity = 0.85;
+        let layerGraphicsGroup = null;
+        let trendChartInstance = null;
+        let timelineInterval = null;
+        let isTimelinePlaying = false;
+
+        /* ==========================================================================
+           4.2 INITIALIZATION & LIFECYCLE HOOKS
+           ========================================================================== */
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initLeafletMap();
+            renderSpatialLayerToggles();
+            renderMetricsGrid();
+            initChartEngine();
+            populateComparisonTable();
+            renderShapBars();
+            runSimulationEngine();
+
+            // Search input keyboard trigger
+            document.getElementById('globalCitySearch').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') executeSearch();
+            });
         });
 
-        // ====================================================================
-        // GIS LEAFLET MAP ENGINE MODULE
-        // ====================================================================
+        /* ==========================================================================
+           4.3 GIS MAP ENGINE & LEAFLET RENDERING
+           ========================================================================== */
 
-        function initializeMapEngine() {
-            const defaultCity = cityDatabase[activeCityKey];
-
-            leafletMap = L.map('map', {
-                zoomControl: false,
+        function initLeafletMap() {
+            const city = CITIES_DATA[activeCityKey];
+            
+            // Instantiate Leaflet Map Container
+            mapInstance = L.map('map', {
+                zoomControl: true,
                 attributionControl: false
-            }).setView([defaultCity.lat, defaultCity.lng], 7);
+            }).setView(city.coords, 12);
 
-            // CARTO Dark Matter Tile Layer
+            // Dark Matter Basemap Tiles
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 19,
                 subdomains: 'abcd'
-            }).addTo(leafletMap);
+            }).addTo(mapInstance);
 
-            L.control.zoom({ position: 'topright' }).addTo(leafletMap);
+            // Layer Graphics Group
+            layerGraphicsGroup = L.layerGroup().addTo(mapInstance);
 
-            // Populate Markers for all major database cities
-            Object.keys(cityDatabase).forEach(key => {
-                const city = cityDatabase[key];
-                const marker = L.marker([city.lat, city.lng]).addTo(leafletMap);
-                
-                marker.bindPopup(`
-                    <div class="p-1 space-y-1 text-xs">
-                        <p class="font-bold text-emerald-400 text-sm">${city.name}, ${city.country}</p>
-                        <p class="text-slate-300">Temp: <b class="text-white">${city.metrics.temperature} °C</b></p>
-                        <p class="text-slate-300">Risk Score: <b class="${city.riskClass}">${city.riskText}</b></p>
-                        <button onclick="switchCityFromMap('${key}')" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-1 px-2 rounded text-[10px] transition">
-                            Load City Analytics
-                        </button>
-                    </div>
-                `);
+            // Render active layer graphics
+            drawMapOverlays();
+        }
+
+        function drawMapOverlays() {
+            if (!mapInstance || !layerGraphicsGroup) return;
+            layerGraphicsGroup.clearLayers();
+
+            const city = CITIES_DATA[activeCityKey];
+            const centerLat = city.coords[0];
+            const centerLng = city.coords[1];
+
+            // Primary City Center Marker
+            const centerMarker = L.circleMarker([centerLat, centerLng], {
+                radius: 12,
+                fillColor: '#10b981',
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: mapOpacity
+            });
+            centerMarker.bindPopup(`
+                <div class="p-1">
+                    <p class="font-bold text-emerald-400 text-xs">${city.name}</p>
+                    <p class="text-[10px] text-slate-300 mt-1">UHI Heat Index: ${city.metrics.uhi.val}</p>
+                    <p class="text-[10px] text-slate-300">AQI: ${city.metrics.aqi.val}</p>
+                </div>
+            `);
+            layerGraphicsGroup.addLayer(centerMarker);
+
+            // Simulated Spatial Layers Heat Circles
+            MAP_LAYERS.forEach((layer, index) => {
+                if (layer.active) {
+                    const offsetFactor = (index + 1) * 0.012;
+                    const heatmapCircle = L.circle([centerLat + (Math.sin(index) * offsetFactor), centerLng + (Math.cos(index) * offsetFactor)], {
+                        radius: 2500 + (index * 800),
+                        fillColor: layer.color,
+                        color: layer.color,
+                        weight: 1,
+                        opacity: 0.6,
+                        fillOpacity: mapOpacity * 0.35
+                    });
+                    heatmapCircle.bindPopup(`<b class="text-xs">${layer.name} Layer Circle</b>`);
+                    layerGraphicsGroup.addLayer(heatmapCircle);
+                }
             });
         }
 
         function changeMapOpacity(val) {
-            const opacity = val / 100;
-            const mapContainer = document.getElementById('map');
-            if (mapContainer) {
-                mapContainer.style.opacity = opacity;
-            }
+            mapOpacity = val / 100;
+            drawMapOverlays();
         }
 
         function resetMapLocation() {
-            const city = cityDatabase[activeCityKey];
-            if (leafletMap && city) {
-                leafletMap.flyTo([city.lat, city.lng], 8, { duration: 1.5 });
+            if (mapInstance && CITIES_DATA[activeCityKey]) {
+                mapInstance.flyTo(CITIES_DATA[activeCityKey].coords, 12, { duration: 1.2 });
             }
         }
 
-        function switchCityFromMap(key) {
-            if (cityDatabase[key]) {
-                activeCityKey = key;
-                renderActiveCityData(key);
-            }
-        }
+        /* ==========================================================================
+           4.4 SPATIAL LAYER CONTROLLERS
+           ========================================================================== */
 
-        // ====================================================================
-        // SPATIAL LAYER CONTROLLER MODULE
-        // ====================================================================
-
-        function renderLayerButtons() {
+        function renderSpatialLayerToggles() {
             const container = document.getElementById('layerButtonsGrid');
-            if (!container) return;
-
             container.innerHTML = '';
 
-            Object.keys(mapLayersState).forEach(layerId => {
-                const layer = mapLayersState[layerId];
-                const isActive = layer.active;
-
+            MAP_LAYERS.forEach((layer, idx) => {
                 const btn = document.createElement('button');
-                btn.onclick = () => toggleMapLayer(layerId);
-                btn.className = `p-2.5 rounded-xl text-xs font-medium text-left transition-all flex items-center space-x-2 border ${
-                    isActive 
-                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300 shadow-lg shadow-emerald-950/30' 
-                    : 'border-bordercolor bg-panelbg/50 text-slate-400 hover:border-slate-600'
+                btn.onclick = () => toggleLayer(idx);
+                btn.className = `p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all ${
+                    layer.active 
+                        ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300 emerald-glow' 
+                        : 'bg-darkbg/80 border-bordercolor text-slate-400 hover:text-slate-200'
                 }`;
-
                 btn.innerHTML = `
-                    <span class="text-base">${layer.icon}</span>
+                    <i class="fa-solid ${layer.icon} text-xs" style="color: ${layer.active ? layer.color : '#94a3b8'}"></i>
                     <span class="truncate">${layer.name}</span>
                 `;
-
                 container.appendChild(btn);
             });
         }
 
-        function toggleMapLayer(layerId) {
-            if (mapLayersState[layerId]) {
-                mapLayersState[layerId].active = !mapLayersState[layerId].active;
-                renderLayerButtons();
-            }
+        function toggleLayer(index) {
+            MAP_LAYERS[index].active = !MAP_LAYERS[index].active;
+            renderSpatialLayerToggles();
+            drawMapOverlays();
         }
 
         function selectAllLayers() {
-            Object.keys(mapLayersState).forEach(key => {
-                mapLayersState[key].active = true;
-            });
-            renderLayerButtons();
+            const allActive = MAP_LAYERS.every(l => l.active);
+            MAP_LAYERS.forEach(l => l.active = !allActive);
+            renderSpatialLayerToggles();
+            drawMapOverlays();
         }
 
-        // ====================================================================
-        // CHART ENGINE MODULE
-        // ====================================================================
+        /* ==========================================================================
+           4.5 METRICS MATRIX & CITY DATA SWITCHING ENGINE
+           ========================================================================== */
 
-        function initializeTrendChart() {
+        function renderMetricsGrid() {
+            const container = document.getElementById('metricsCardsContainer');
+            container.innerHTML = '';
+
+            const city = CITIES_DATA[activeCityKey];
+
+            Object.keys(city.metrics).forEach(key => {
+                const m = city.metrics[key];
+                let badgeStyle = "badge-info";
+                if (m.status === "warning") badgeStyle = "badge-warning";
+                if (m.status === "danger") badgeStyle = "badge-danger";
+                if (m.status === "positive") badgeStyle = "badge-positive";
+
+                const card = document.createElement('div');
+                card.className = "glass-card-sm p-3 flex flex-col justify-between space-y-2 hover:border-emerald-500/40 transition";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] text-slate-400 font-medium truncate">${m.label}</span>
+                        <i class="fa-solid ${m.icon} text-slate-500 text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold font-mono text-slate-100">${m.val}</p>
+                        <span class="inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeStyle}">${m.badge}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateCityDashboard(cityKey) {
+            if (!CITIES_DATA[cityKey]) return;
+            activeCityKey = cityKey;
+            const city = CITIES_DATA[cityKey];
+
+            // Header Updates
+            document.getElementById('currentCityTitle').innerText = city.name;
+            document.getElementById('currentCityCoords').innerText = `${city.coords[0]}° N, ${city.coords[1]}° E`;
+            document.getElementById('currentCitySubtitle').innerText = city.subtitle;
+            document.getElementById('cityRiskBadge').className = `text-sm font-bold ${city.riskClass} flex items-center justify-end space-x-1`;
+            document.getElementById('cityRiskBadge').querySelector('span').innerText = city.riskText;
+            document.getElementById('aiChatActiveCity').innerText = cityKey;
+
+            // Re-render Views
+            renderMetricsGrid();
+            updateChartData();
+            resetMapLocation();
+            drawMapOverlays();
+        }
+
+        /* ==========================================================================
+           4.6 GLOBAL SEARCH ENGINE
+           ========================================================================== */
+
+        function executeSearch() {
+            const query = document.getElementById('globalCitySearch').value.trim().toLowerCase();
+            if (!query) return;
+
+            const matchedKey = Object.keys(CITIES_DATA).find(k => k.toLowerCase().includes(query) || CITIES_DATA[k].name.toLowerCase().includes(query));
+            if (matchedKey) {
+                updateCityDashboard(matchedKey);
+                document.getElementById('clearSearchBtn').classList.remove('hidden');
+            } else {
+                alert(`City "${query}" not found in system dictionary. Try: Karachi, London, Tokyo, New York, or Dubai.`);
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('globalCitySearch').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+        }
+
+        /* ==========================================================================
+           4.7 HISTORICAL CHART ENGINE (CHART.JS)
+           ========================================================================== */
+
+        function initChartEngine() {
             const ctx = document.getElementById('tempTrendChart').getContext('2d');
-            const activeCity = cityDatabase[activeCityKey];
+            const city = CITIES_DATA[activeCityKey];
 
-            trendChart = new Chart(ctx, {
+            trendChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: ['T-6', 'T-5', 'T-4', 'T-3', 'T-2', 'Yesterday', 'Today'],
                     datasets: [{
-                        label: 'Temperature (°C)',
-                        data: activeCity.history,
+                        label: 'Surface Temp (°C)',
+                        data: city.tempHistory,
                         borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                        borderWidth: 2.5,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         fill: true,
-                        tension: 0.35,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#10b981'
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#34d399',
+                        pointRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#111c35',
-                            titleColor: '#f1f5f9',
-                            bodyColor: '#34d399',
-                            borderColor: '#1e2e52',
-                            borderWidth: 1,
-                            padding: 10
-                        }
+                        legend: { display: false }
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(30, 46, 82, 0.5)' },
-                            ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+                            grid: { color: 'rgba(30, 46, 82, 0.4)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
                         },
                         y: {
-                            grid: { color: 'rgba(30, 46, 82, 0.5)' },
-                            ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+                            grid: { color: 'rgba(30, 46, 82, 0.4)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
                         }
                     }
                 }
             });
         }
 
-        function updateTrendChart(historyData) {
-            if (trendChart) {
-                trendChart.data.datasets[0].data = historyData;
-                trendChart.update();
-            }
+        function updateChartData() {
+            if (!trendChartInstance) return;
+            const city = CITIES_DATA[activeCityKey];
+            trendChartInstance.data.datasets[0].data = city.tempHistory;
+            trendChartInstance.update();
         }
 
-        // ====================================================================
-        // DATA RENDERING & SYNC ENGINE MODULE
-        // ====================================================================
-
-        function renderActiveCityData(key) {
-            const city = cityDatabase[key];
-            if (!city) return;
-
-            // Header Elements Update
-            document.getElementById('currentCityTitle').innerText = `${city.name}, ${city.country}`;
-            document.getElementById('currentCityCoords').innerText = city.coordsStr;
-            document.getElementById('currentCitySubtitle').innerText = city.subtitle;
-            document.getElementById('aiChatActiveCity').innerText = city.name;
-            document.getElementById('exportModalCity').innerText = city.name;
-
-            const riskBadge = document.getElementById('cityRiskBadge');
-            riskBadge.className = `text-sm font-bold flex items-center justify-end space-x-1 ${city.riskClass}`;
-            riskBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-xs"></i> <span>${city.riskText}</span>`;
-
-            // Fly Map View
-            if (leafletMap) {
-                leafletMap.flyTo([city.lat, city.lng], 8, { duration: 1.2 });
-            }
-
-            // Render 14 Feature Cards
-            render14MetricsGrid(city.metrics);
-
-            // Update Chart Data
-            updateTrendChart(city.history);
-
-            // Populate Comparison Table Modal Data
-            populateComparisonTable();
-
-            // Populate SHAP Modal Data
-            renderShapBreakdown(city.shap);
-
-            // Re-run Scenario Calculation
-            runSimulationEngine();
-        }
-
-        function render14MetricsGrid(metrics) {
-            const container = document.getElementById('metricsCardsContainer');
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            featureSchema.forEach(schema => {
-                const val = metrics[schema.id] || 'N/A';
-
-                const card = document.createElement('div');
-                card.className = "p-3 bg-panelbg/60 border border-bordercolor/80 rounded-xl hover:border-emerald-500/40 transition group";
-                
-                card.innerHTML = `
-                    <div class="flex items-center justify-between text-slate-400 mb-1">
-                        <span class="text-[10px] font-medium truncate">${schema.name}</span>
-                        <i class="fa-solid ${schema.icon} text-[10px] text-slate-500 group-hover:text-emerald-400 transition"></i>
-                    </div>
-                    <div class="flex items-baseline space-x-1">
-                        <span class="text-sm font-bold font-mono text-emerald-400">${val}</span>
-                        <span class="text-[10px] text-slate-500 font-mono">${schema.unit}</span>
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        // ====================================================================
-        // SCENARIO SIMULATOR ALGORITHMIC ENGINE
-        // ====================================================================
+        /* ==========================================================================
+           4.8 SIMULATION ENGINE
+           ========================================================================== */
 
         function runSimulationEngine() {
             const density = parseFloat(document.getElementById('simDensity').value);
             const green = parseFloat(document.getElementById('simGreen').value);
             const renewable = parseFloat(document.getElementById('simRenewable').value);
 
-            // Slider Value Labels Update
+            // Update DOM slider value displays
             document.getElementById('sliderValueDensity').innerText = `${density}%`;
             document.getElementById('sliderValueGreen').innerText = `${green}%`;
             document.getElementById('sliderValueRenewable').innerText = `${renewable}%`;
 
-            // Simulation Mathematical Modeling Logic
-            const tempShift = ((density * 0.032) - (green * 0.045)).toFixed(2);
-            const carbonRate = Math.max(15, Math.round(420 - (renewable * 3.2)));
-            const aqiScore = Math.max(10, Math.round(135 + (density * 0.38) - (green * 0.72)));
-            const sustScore = Math.min(100, Math.max(10, (75 - (tempShift * 8) + (renewable * 0.25) - (aqiScore * 0.15))).toFixed(1));
+            // Analytical Calculation Formulas
+            const tempShift = ((density * 0.035) - (green * 0.045)).toFixed(2);
+            const carbonRate = Math.round(500 - (renewable * 3.8) + (density * 0.8));
+            const aqiScore = Math.round(140 + (density * 0.5) - (green * 1.2));
+            const sustScore = (100 - (density * 0.3) + (green * 0.5) + (renewable * 0.4)).toFixed(1);
 
-            // DOM Render Output Updates
-            document.getElementById('calcTempShift').innerText = `${tempShift > 0 ? '+' : ''}${tempShift} °C`;
+            // Render calculated values to DOM
+            document.getElementById('calcTempShift').innerText = `${tempShift >= 0 ? '+' : ''}${tempShift} °C`;
             document.getElementById('calcCarbonRate').innerText = `${carbonRate} gCO₂/kWh`;
             document.getElementById('calcAqiScore').innerText = `${aqiScore} AQI`;
-            document.getElementById('calcSustScore').innerText = `${sustScore} / 100`;
+            document.getElementById('calcSustScore').innerText = `${Math.min(100, Math.max(0, sustScore))} / 100`;
         }
 
         function resetScenarioSliders() {
@@ -1202,214 +1158,139 @@
             runSimulationEngine();
         }
 
-        // ====================================================================
-        // HISTORICAL PLAYBACK CONTROLLER MODULE
-        // ====================================================================
+        /* ==========================================================================
+           4.9 TIMELINE PLAYBACK ENGINE
+           ========================================================================== */
 
         function handleTimelineSlider(val) {
-            const daysOffset = 6 - val;
-            const label = document.getElementById('playbackDateDisplay');
-            if (daysOffset === 0) {
-                label.innerText = "Today (Live Stream)";
-                label.className = "text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-lg";
-            } else {
-                label.innerText = `Historical Stream (T-${daysOffset} Days)`;
-                label.className = "text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2.5 py-1 rounded-lg";
-            }
+            const days = ["T-6 Days", "T-5 Days", "T-4 Days", "T-3 Days", "T-2 Days", "Yesterday", "Today (Live Stream)"];
+            document.getElementById('playbackDateDisplay').innerText = days[val];
         }
 
         function toggleTimelinePlayback() {
-            const btn = document.getElementById('playPauseBtn');
             const icon = document.getElementById('playIcon');
             const slider = document.getElementById('timelineSlider');
 
-            if (!isPlaying) {
-                isPlaying = true;
-                icon.className = "fa-solid fa-pause text-sm";
-                btn.className = "bg-amber-600 hover:bg-amber-500 text-white w-10 h-10 rounded-xl transition flex items-center justify-center shrink-0 shadow-lg shadow-amber-950/50";
-
-                playbackInterval = setInterval(() => {
-                    let curr = parseInt(slider.value);
-                    if (curr >= 6) curr = 0;
-                    else curr++;
-                    slider.value = curr;
-                    handleTimelineSlider(curr);
-                }, 1200);
-            } else {
-                isPlaying = false;
-                clearInterval(playbackInterval);
+            if (isTimelinePlaying) {
+                clearInterval(timelineInterval);
+                isTimelinePlaying = false;
                 icon.className = "fa-solid fa-play text-sm";
-                btn.className = "bg-emerald-600 hover:bg-emerald-500 text-white w-10 h-10 rounded-xl transition flex items-center justify-center shrink-0 shadow-lg shadow-emerald-950/50";
-            }
-        }
-
-        // ====================================================================
-        // SEARCH ENGINE MODULE
-        // ====================================================================
-
-        function executeSearch() {
-            const input = document.getElementById('globalCitySearch');
-            const query = input.value.trim().toLowerCase();
-            
-            if (!query) return;
-
-            const foundKey = Object.keys(cityDatabase).find(k => 
-                cityDatabase[k].name.toLowerCase().includes(query) || 
-                cityDatabase[k].country.toLowerCase().includes(query)
-            );
-
-            if (foundKey) {
-                activeCityKey = foundKey;
-                renderActiveCityData(foundKey);
-                document.getElementById('clearSearchBtn').classList.remove('hidden');
             } else {
-                alert(`No telemetry dataset found for search query: '${query}'. Try 'Karachi', 'London', 'Tokyo', 'New York', or 'Dubai'.`);
+                isTimelinePlaying = true;
+                icon.className = "fa-solid fa-pause text-sm";
+                timelineInterval = setInterval(() => {
+                    let cur = parseInt(slider.value);
+                    cur = (cur + 1) % 7;
+                    slider.value = cur;
+                    handleTimelineSlider(cur);
+                }, 1200);
             }
         }
 
-        function clearSearch() {
-            document.getElementById('globalCitySearch').value = '';
-            document.getElementById('clearSearchBtn').classList.add('hidden');
-        }
-
-        // Handle Enter key in Search Input
-        document.getElementById('globalCitySearch')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') executeSearch();
-        });
-
-        // ====================================================================
-        // SHAP & COMPARISON MATRIX MODALS RENDER MODULES
-        // ====================================================================
-
-        function populateComparisonTable() {
-            const tbody = document.getElementById('comparisonTableBody');
-            if (!tbody) return;
-
-            tbody.innerHTML = '';
-
-            featureSchema.forEach(schema => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-panelbg/50 transition border-b border-bordercolor/40";
-
-                let cellsHTML = `<td class="p-3 text-slate-300 font-sans font-medium flex items-center space-x-2">
-                    <i class="fa-solid ${schema.icon} text-slate-500 text-xs"></i>
-                    <span>${schema.name}</span>
-                </td>`;
-
-                ['karachi', 'london', 'tokyo', 'newyork', 'dubai'].forEach(cityKey => {
-                    const city = cityDatabase[cityKey];
-                    const val = city.metrics[schema.id] || '-';
-                    cellsHTML += `<td class="p-3">${val} <span class="text-[10px] text-slate-500">${schema.unit}</span></td>`;
-                });
-
-                tr.innerHTML = cellsHTML;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderShapBreakdown(shapList) {
-            const container = document.getElementById('shapBarsContainer');
-            if (!container || !shapList) return;
-
-            container.innerHTML = '';
-
-            shapList.forEach(item => {
-                const box = document.createElement('div');
-                box.className = "space-y-1";
-
-                box.innerHTML = `
-                    <div class="flex justify-between text-xs text-slate-300 font-medium">
-                        <span>${item.name}</span>
-                        <span class="font-mono ${item.color.replace('bg-', 'text-')} font-bold">${item.impact} SHAP Score</span>
-                    </div>
-                    <div class="w-full bg-darkbg h-2 rounded-full overflow-hidden border border-bordercolor">
-                        <div class="${item.color} h-full rounded-full" style="width: ${item.barWidth}"></div>
-                    </div>
-                `;
-
-                container.appendChild(box);
-            });
-        }
-
-        // ====================================================================
-        // AI ASSISTANT CHAT ENGINE MODULE
-        // ====================================================================
+        /* ==========================================================================
+           4.10 AI CHAT ASSISTANT ENGINE
+           ========================================================================== */
 
         function sendAiMessage() {
             const input = document.getElementById('aiChatInput');
-            const msg = input.value.trim();
-            if (!msg) return;
+            const text = input.value.trim();
+            if (!text) return;
 
             const chatBox = document.getElementById('aiChatBox');
-            const activeCity = cityDatabase[activeCityKey];
 
-            // Render User Prompt Bubble
-            chatBox.innerHTML += `
-                <div class="bg-emerald-950/80 border border-emerald-800/60 p-3 rounded-xl text-emerald-200 ml-auto max-w-[85%] space-y-1">
-                    <p class="font-semibold text-emerald-400 text-[10px]">You</p>
-                    <p>${msg}</p>
-                </div>
-            `;
+            // Append User Message
+            const userMsg = document.createElement('div');
+            userMsg.className = "bg-emerald-950/60 border border-emerald-800/50 p-3 rounded-xl text-slate-200 ml-auto max-w-[85%] text-right space-y-1";
+            userMsg.innerHTML = `<p class="font-semibold text-emerald-400 text-[10px]">You</p><p>${text}</p>`;
+            chatBox.appendChild(userMsg);
 
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Generate Automated Intelligence Response
+            // Generate AI Response
             setTimeout(() => {
-                let aiReply = `Analyzing environmental indicators for ${activeCity.name}... Current surface temperature stands at ${activeCity.metrics.temperature} °C with an Air Quality Index of ${activeCity.metrics.air_quality_index}. Recommended urban resilience priority: expansion of green canopy cover to reduce local heat island trapping.`;
-                
-                if (msg.toLowerCase().includes('heat') || msg.toLowerCase().includes('temperature')) {
-                    aiReply = `Thermal analysis for ${activeCity.name} shows a surface temperature of ${activeCity.metrics.temperature} °C. The Urban Heat Island layer contributes significantly to heat retention during peak sunlight hours.`;
-                } else if (msg.toLowerCase().includes('air') || msg.toLowerCase().includes('aqi')) {
-                    aiReply = `${activeCity.name} currently records an AQI of ${activeCity.metrics.air_quality_index}. Particulate matter density is affected by local traffic congestion (${activeCity.metrics.traffic_congestion}% delay index).`;
-                }
-
-                chatBox.innerHTML += `
-                    <div class="bg-panelbg/90 border border-bordercolor p-3 rounded-xl text-slate-300 max-w-[90%] space-y-1">
-                        <p class="font-semibold text-emerald-400 text-[10px] flex items-center">
-                            <i class="fa-solid fa-robot mr-1"></i> EcoPulse Assistant
-                        </p>
-                        <p>${aiReply}</p>
-                    </div>
+                const aiMsg = document.createElement('div');
+                aiMsg.className = "bg-panelbg/80 border border-bordercolor p-3 rounded-xl text-slate-300 max-w-[90%] space-y-1";
+                aiMsg.innerHTML = `
+                    <p class="font-semibold text-emerald-400 text-[11px] flex items-center">
+                        <i class="fa-solid fa-robot mr-1"></i> EcoPulse Assistant
+                    </p>
+                    <p>Analysis for <b>${activeCityKey}</b>: In response to "<i>${text}</i>", risk models recommend increasing urban tree canopy by 15% to offset high surface concrete retention.</p>
                 `;
+                chatBox.appendChild(aiMsg);
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 600);
+            }, 800);
         }
 
         function handleAiChatKey(e) {
             if (e.key === 'Enter') sendAiMessage();
         }
 
-        // ====================================================================
-        // EXPORT MODAL & SYSTEM UTILITIES MODULE
-        // ====================================================================
-
-        function selectExportFormat(fmt) {
-            selectedExportFormat = fmt;
-            ['Pdf', 'Csv', 'Json'].forEach(f => {
-                const btn = document.getElementById(`fmt${f}`);
-                if (f.toLowerCase() === fmt) {
-                    btn.className = "p-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-semibold text-center";
-                } else {
-                    btn.className = "p-2.5 rounded-xl border border-bordercolor bg-panelbg text-slate-300 font-semibold text-center";
-                }
-            });
-        }
-
-        function triggerExportDownload() {
-            const city = cityDatabase[activeCityKey];
-            alert(`Generating ${selectedExportFormat.toUpperCase()} telemetry report for ${city.name}, ${city.country}...\nDownload initiated successfully.`);
-            closeModal('exportModal');
-        }
+        /* ==========================================================================
+           4.11 MODALS, COMPARISON MATRIX & SHAP RENDERING
+           ========================================================================== */
 
         function openModal(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('hidden');
+            document.getElementById(id).classList.remove('hidden');
         }
 
         function closeModal(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function populateComparisonTable() {
+            const tbody = document.getElementById('comparisonTableBody');
+            tbody.innerHTML = '';
+
+            const sampleKeys = Object.keys(CITIES_DATA["Karachi"].metrics);
+
+            sampleKeys.forEach(mKey => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-panelbg/50 transition border-b border-bordercolor/40";
+                
+                let rowHtml = `<td class="p-3 font-semibold text-slate-300 font-sans">${CITIES_DATA["Karachi"].metrics[mKey].label}</td>`;
+                
+                ["Karachi", "London", "Tokyo", "New York", "Dubai"].forEach(cKey => {
+                    rowHtml += `<td class="p-3">${CITIES_DATA[cKey].metrics[mKey].val}</td>`;
+                });
+
+                tr.innerHTML = rowHtml;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderShapBars() {
+            const container = document.getElementById('shapBarsContainer');
+            container.innerHTML = '';
+
+            const shapFactors = [
+                { name: "Impervious Surface Built Area", val: "+0.28", pct: "85%", color: "bg-rose-500" },
+                { name: "Vegetation Canopy Deficit (NDVI)", val: "+0.22", pct: "70%", color: "bg-amber-500" },
+                { name: "Low Surface Albedo (Roof Absorption)", val: "+0.14", pct: "45%", color: "bg-orange-500" },
+                { name: "Coastal Sea Breeze Cooling Effect", val: "-0.10", pct: "30%", color: "bg-emerald-500" },
+                { name: "Industrial & Vehicular Heat Flux", val: "+0.08", pct: "25%", color: "bg-cyan-500" }
+            ];
+
+            shapFactors.forEach(f => {
+                const item = document.createElement('div');
+                item.className = "space-y-1";
+                item.innerHTML = `
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300 font-sans">${f.name}</span>
+                        <span class="font-bold text-white">${f.val}</span>
+                    </div>
+                    <div class="w-full bg-darkbg h-2 rounded-full overflow-hidden border border-bordercolor">
+                        <div class="${f.color} h-full rounded-full" style="width: ${f.pct}"></div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function triggerDownloadReport() {
+            const fmt = document.getElementById('exportFormatSelect').value.toUpperCase();
+            alert(`Generating ${fmt} Executive Summary Report for ${activeCityKey}... Download started.`);
+            closeModal('exportModal');
         }
     </script>
 </body>
