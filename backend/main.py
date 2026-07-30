@@ -29,7 +29,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse,FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, EmailStr, Field, validator
 
 # =====================================================================
@@ -402,81 +402,12 @@ def render_live_map():
     """
 
 # =====================================================================
-# 7. PAGE 2: CITIES COMPARISON PAGE (`/compare`)
+# 7. PAGE 2: CITIES COMPARISON PAGE (/compare & /compare.html)
 # =====================================================================
-@app.get("/compare", response_class=HTMLResponse, tags=["UI Portal"])
+@app.get("/compare", response_class=FileResponse, tags=["UI Portal"])
+@app.get("/compare.html", response_class=FileResponse, tags=["UI Portal"])
 def render_cities_compare_page():
-    return f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>EcoPulse - Multi-City Climate Comparison Portal</title>
-        <style>
-            * {{ margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
-            body {{ background:#0b0f17; color:#e6edf3; display:flex; flex-direction:column; min-height:100vh; }}
-            .content {{ padding:30px; max-width:1200px; margin:0 auto; width:100%; }}
-            h1 {{ color:#38bdf8; font-size:1.8rem; margin-bottom:8px; }}
-            p {{ color:#8b949e; font-size:0.95rem; margin-bottom:24px; }}
-            .compare-grid {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; }}
-            .city-card {{ background:#111622; border:1px solid #212636; border-radius:10px; padding:20px; display:flex; flex-direction:column; gap:12px; }}
-            .city-name {{ font-size:1.4rem; font-weight:700; color:#fff; border-bottom:1px solid #212636; padding-bottom:8px; display:flex; justify-space-between; align-items:center; }}
-            .metric {{ display:flex; justify-content:space-between; font-size:0.9rem; padding:6px 0; border-bottom:1px dashed #1c2333; }}
-            .metric-val {{ font-weight:700; color:#38bdf8; }}
-            .badge-pollen {{ background:#854d0e; color:#fef08a; padding:2px 8px; border-radius:4px; font-size:0.75rem; }}
-        </style>
-    </head>
-    <body>
-        {NAVBAR_HTML}
-        <div class="content">
-            <h1>📊 Multi-City Climate & Pollen Intelligence Matrix</h1>
-            <p>Compare environmental stressors, temperature anomalies, air quality indices, and pollen risk levels across major urban centers side-by-side.</p>
-
-            <div class="compare-grid">
-                <!-- Lahore -->
-                <div class="city-card">
-                    <div class="city-name">Lahore 🇵🇰</div>
-                    <div class="metric"><span>Temperature</span><span class="metric-val">35.2°C</span></div>
-                    <div class="metric"><span>Air Quality Index (AQI)</span><span class="metric-val" style="color:#ef4444;">185 (Unhealthy)</span></div>
-                    <div class="metric"><span>Pollen Severity</span><span class="badge-pollen">Critical (Tree & Grass)</span></div>
-                    <div class="metric"><span>Grid Carbon Intensity</span><span class="metric-val">410 gCO2/kWh</span></div>
-                    <div class="metric"><span>Population Density</span><span class="metric-val">13 Million</span></div>
-                </div>
-
-                <!-- Karachi -->
-                <div class="city-card">
-                    <div class="city-name">Karachi 🇵🇰</div>
-                    <div class="metric"><span>Temperature</span><span class="metric-val">33.5°C</span></div>
-                    <div class="metric"><span>Air Quality Index (AQI)</span><span class="metric-val" style="color:#f59e0b;">142 (Moderate)</span></div>
-                    <div class="metric"><span>Pollen Severity</span><span class="badge-pollen">High (Tree: 68)</span></div>
-                    <div class="metric"><span>Grid Carbon Intensity</span><span class="metric-val">395 gCO2/kWh</span></div>
-                    <div class="metric"><span>Population Density</span><span class="metric-val">16 Million</span></div>
-                </div>
-
-                <!-- Islamabad -->
-                <div class="city-card">
-                    <div class="city-name">Islamabad 🇵🇰</div>
-                    <div class="metric"><span>Temperature</span><span class="metric-val">29.0°C</span></div>
-                    <div class="metric"><span>Air Quality Index (AQI)</span><span class="metric-val" style="color:#10b981;">88 (Moderate)</span></div>
-                    <div class="metric"><span>Pollen Severity</span><span class="badge-pollen" style="background:#7f1d1d; color:#fca5a5;">Severe (24,000+ count)</span></div>
-                    <div class="metric"><span>Grid Carbon Intensity</span><span class="metric-val">310 gCO2/kWh</span></div>
-                    <div class="metric"><span>Population Density</span><span class="metric-val">1.2 Million</span></div>
-                </div>
-
-                <!-- London -->
-                <div class="city-card">
-                    <div class="city-name">London 🇬🇧</div>
-                    <div class="metric"><span>Temperature</span><span class="metric-val">19.4°C</span></div>
-                    <div class="metric"><span>Air Quality Index (AQI)</span><span class="metric-val" style="color:#10b981;">42 (Good)</span></div>
-                    <div class="metric"><span>Pollen Severity</span><span class="badge-pollen" style="background:#14532d; color:#86efac;">Low (Grass: 24)</span></div>
-                    <div class="metric"><span>Grid Carbon Intensity</span><span class="metric-val">145 gCO2/kWh</span></div>
-                    <div class="metric"><span>Population Density</span><span class="metric-val">8.9 Million</span></div>
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+    return FileResponse("compare.html")
 
 # =====================================================================
 # 8. PAGE 3: ABOUT & LEARN STORY PAGE (`/about`)
