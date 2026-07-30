@@ -340,6 +340,8 @@
     <div class="modal-content" style="max-width:1000px;">
         <button class="close-btn" onclick="closeAnalytics()">&times;</button>
         <h1>📊 Global Climate Analytics</h1>
+
+        <!-- KPI Cards -->
         <div class="analytics-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
             <div class="analytics-card"><div class="number" id="analyticsFires">--</div><div class="label">Active Fires</div></div>
             <div class="analytics-card"><div class="number" id="analyticsAlerts">--</div><div class="label">Active Alerts</div></div>
@@ -347,19 +349,27 @@
             <div class="analytics-card"><div class="number" id="analyticsHumidity">--</div><div class="label">Avg Humidity (%)</div></div>
             <div class="analytics-card"><div class="number" id="analyticsWind">--</div><div class="label">Avg Wind (km/h)</div></div>
         </div>
+
+        <!-- Charts – FIXED HEIGHT CONTAINERS -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:16px;">
-            <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px;">
+            <!-- Left: Bar Chart -->
+            <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px; height:260px; position:relative;">
                 <h3 style="color:#e2e8f0; font-size:14px; margin-bottom:8px;">🌡️ City Temperatures</h3>
-                <canvas id="analyticsBarChart" style="height:200px;"></canvas>
+                <canvas id="analyticsBarChart" style="width:100%; height:200px;"></canvas>
             </div>
-            <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px;">
+            <!-- Right: Doughnut Chart -->
+            <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px; height:260px; position:relative;">
                 <h3 style="color:#e2e8f0; font-size:14px; margin-bottom:8px;">🛡️ Risk Scores</h3>
-                <canvas id="analyticsRiskChart" style="height:200px;"></canvas>
+                <canvas id="analyticsRiskChart" style="width:100%; height:200px;"></canvas>
             </div>
         </div>
+
+        <!-- Timestamp -->
         <div style="margin-top:16px;">
             <p style="color:#94a3b8; font-size:12px; text-align:center;">Last Updated: <span id="analyticsTimestamp">--</span></p>
         </div>
+
+        <!-- Close Button -->
         <button onclick="closeAnalytics()" style="margin-top:16px; background:#10b981; border:none; border-radius:12px; padding:10px 24px; color:#0b0f19; font-weight:700; cursor:pointer;">Close</button>
     </div>
 </div>
@@ -1243,76 +1253,91 @@ async function runCompareCoords() {
     // ANALYTICS
     // ============================================================
     async function openAnalytics() {
-        document.getElementById('analyticsModal').classList.add('open');
-        try {
-            const res = await fetch('/api/analytics');
-            const data = await res.json();
-            document.getElementById('analyticsFires').textContent = data.total_fires || 0;
-            document.getElementById('analyticsAlerts').textContent = data.total_alerts || 0;
-            document.getElementById('analyticsTemp').textContent = data.avg_temperature || '--';
-            document.getElementById('analyticsHumidity').textContent = data.avg_humidity || '--';
-            document.getElementById('analyticsWind').textContent = data.avg_wind || '--';
-            document.getElementById('analyticsTimestamp').textContent = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '--';
-            // Bar chart
-            const ctx1 = document.getElementById('analyticsBarChart').getContext('2d');
-            new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: data.city_names || ['Karachi', 'Lahore', 'Islamabad', 'Mumbai', 'Delhi'],
-                    datasets: [{
-                        label: 'Temperature (°C)',
-                        data: data.city_temps || [22, 24, 20, 26, 28],
-                        backgroundColor: ['#38bdf8', '#60a5fa', '#93c5fd', '#3b82f6', '#1d4ed8'],
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8', font: { size: 10 } } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, beginAtZero: true }
-                    }
-                }
-            });
-            // Doughnut chart for risk
-            const ctx2 = document.getElementById('analyticsRiskChart').getContext('2d');
-            new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: data.city_names || ['Karachi', 'Lahore', 'Islamabad', 'Mumbai', 'Delhi'],
-                    datasets: [{
-                        data: data.risk_scores || [60, 55, 70, 45, 50],
-                        backgroundColor: ['#10b981', '#fbbf24', '#f59e0b', '#f87171', '#f43f5e']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: { color: '#94a3b8', font: { size: 10 } }
-                        }
-                    }
-                }
-            });
-        } catch(e) {
-            console.error('Analytics error:', e);
-            alert('⚠️ Error loading analytics');
-        }
-    }
+    document.getElementById('analyticsModal').classList.add('open');
+    try {
+        const res = await fetch('/api/analytics');
+        const data = await res.json();
 
-    function closeAnalytics() {
-        document.getElementById('analyticsModal').classList.remove('open');
-        // Destroy charts to avoid duplicates
-        const charts = document.querySelectorAll('#analyticsBarChart, #analyticsRiskChart');
-        charts.forEach(el => {
-            const instance = Chart.getChart(el);
-            if (instance) instance.destroy();
+        // Update KPI cards
+        document.getElementById('analyticsFires').textContent = data.total_fires || 0;
+        document.getElementById('analyticsAlerts').textContent = data.total_alerts || 0;
+        document.getElementById('analyticsTemp').textContent = data.avg_temperature || '--';
+        document.getElementById('analyticsHumidity').textContent = data.avg_humidity || '--';
+        document.getElementById('analyticsWind').textContent = data.avg_wind || '--';
+        document.getElementById('analyticsTimestamp').textContent = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '--';
+
+        // --- BAR CHART (City Temperatures) ---
+        const ctx1 = document.getElementById('analyticsBarChart').getContext('2d');
+        // Destroy previous chart instance if exists
+        if (window.analyticsBarChartInstance) {
+            window.analyticsBarChartInstance.destroy();
+        }
+        window.analyticsBarChartInstance = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: data.city_names || ['Karachi', 'Lahore', 'Islamabad', 'Mumbai', 'Delhi'],
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: data.city_temps || [22, 24, 20, 26, 28],
+                    backgroundColor: ['#38bdf8', '#60a5fa', '#93c5fd', '#3b82f6', '#1d4ed8'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,   // ⬅️ FIX: prevents distortion
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8', font: { size: 10 } } },
+                    y: { ticks: { color: '#94a3b8', font: { size: 10 } }, beginAtZero: true }
+                }
+            }
         });
+
+        // --- DOUGHNUT CHART (Risk Scores) ---
+        const ctx2 = document.getElementById('analyticsRiskChart').getContext('2d');
+        if (window.analyticsRiskChartInstance) {
+            window.analyticsRiskChartInstance.destroy();
+        }
+        window.analyticsRiskChartInstance = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: data.city_names || ['Karachi', 'Lahore', 'Islamabad', 'Mumbai', 'Delhi'],
+                datasets: [{
+                    data: data.risk_scores || [60, 55, 70, 45, 50],
+                    backgroundColor: ['#10b981', '#fbbf24', '#f59e0b', '#f87171', '#f43f5e']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,   // ⬅️ FIX: prevents distortion
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#94a3b8', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+    } catch(e) {
+        console.error('Analytics error:', e);
+        alert('⚠️ Error loading analytics');
     }
+}
+
+     function closeAnalytics() {
+    document.getElementById('analyticsModal').classList.remove('open');
+    // Destroy both chart instances to free memory
+    if (window.analyticsBarChartInstance) {
+        window.analyticsBarChartInstance.destroy();
+        window.analyticsBarChartInstance = null;
+    }
+    if (window.analyticsRiskChartInstance) {
+        window.analyticsRiskChartInstance.destroy();
+        window.analyticsRiskChartInstance = null;
+    }
+}
 
     // ============================================================
     // SUBSCRIBE
