@@ -157,15 +157,21 @@ def send_welcome_alert_email(user_email: str):
         """
         msg.attach(MIMEText(html_content, "html"))
 
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.sendmail(SENDER_EMAIL, user_email, msg.as_string())
-        server.quit()
+        # Smart connection based on PORT
+        if SMTP_PORT == 465:
+            with smtplib.SMTP_SSL(SMTP_SERVER, 465, timeout=15) as server:
+                server.login(SENDER_EMAIL, SENDER_PASSWORD)
+                server.sendmail(SENDER_EMAIL, user_email, msg.as_string())
+        else:
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
+                server.starttls()
+                server.login(SENDER_EMAIL, SENDER_PASSWORD)
+                server.sendmail(SENDER_EMAIL, user_email, msg.as_string())
+
         logger.info(f"Subscription alert successfully sent to {user_email}")
     except Exception as e:
         logger.error(f"Failed to send email to {user_email}: {str(e)}")
-
+        
 # =====================================================================
 # 4. REST & TELEMETRY ENDPOINTS
 # =====================================================================
