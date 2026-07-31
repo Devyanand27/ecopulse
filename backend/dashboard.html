@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoPulse - Next-Gen Urban Climate & Environmental Risk Intelligence Platform</title>
+    <title>EcoPulse - Global Climate Intelligence Platform</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,6 +42,32 @@
         }
     </script>
 
+    <script>
+        async function loadLiveModelMetrics() {
+            try {
+                const res = await fetch('/api/model-metrics');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const m = data.metrics;
+                    document.getElementById('ai-metrics-container').innerHTML = `
+            <ul class="text-xs space-y-1 text-gray-200">
+              <li><strong>RMSE:</strong> ${m.rmse} °C</li>
+              <li><strong>MAE:</strong> ${m.mae} °C</li>
+              <li><strong>R² Score:</strong> ${m.r2_score}</li>
+              <li><strong>5-Fold CV:</strong> ${m.cv_r2_mean} ± ${m.cv_r2_std}</li>
+              <li><strong>Samples Analyzed:</strong> ${m.sample_count}</li>
+            </ul>
+          `;
+                }
+            } catch (err) {
+                document.getElementById('ai-metrics-container').innerHTML =
+                    '<p class="text-xs text-red-400">Failed to load real-time metrics.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLiveModelMetrics);
+    </script>
+
     <!-- Leaflet GIS Map Styling & Script -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -54,18 +81,21 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
 
     <style>
         /* ==========================================================================
            CUSTOM COMPONENT & MAP OVERRIDE STYLES
            ========================================================================== */
-        
+
         * {
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             background-color: #060a12;
@@ -154,10 +184,12 @@
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
             }
+
             70% {
                 transform: scale(1);
                 box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
             }
+
             100% {
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
@@ -226,41 +258,95 @@
             color: #22d3ee;
             border: 1px solid rgba(6, 182, 212, 0.3);
         }
+
+        /* Mobile Responsive Overrides */
+        @media screen and (max-width: 768px) {
+
+            /* Stack sidebar and map vertically instead of side-by-side */
+            .app-container,
+            .main-layout,
+            .dashboard-grid {
+                flex-direction: column !important;
+                grid-template-columns: 1fr !important;
+                width: 100% !important;
+                padding: 10px !important;
+            }
+
+            /* Ensure map height fits mobile screen */
+            #map {
+                height: 350px !important;
+                width: 100% !important;
+                border-radius: 12px;
+            }
+
+            /* Make panels scrollable on touch devices */
+            .sidebar,
+            .modal-content,
+            .card {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden;
+            }
+
+            /* Adjust font sizes for mobile readability */
+            h1 {
+                font-size: 1.5rem !important;
+            }
+
+            h2 {
+                font-size: 1.25rem !important;
+            }
+
+            .kpi-card {
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col bg-darkbg text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
 
     <!-- ===================================================================== -->
     <!-- 1. NAVIGATION HEADER -->
     <!-- ===================================================================== -->
-    <header class="sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-bordercolor px-6 py-3.5 flex items-center justify-between">
+    <header
+        class="sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-bordercolor px-6 py-3.5 flex items-center justify-between">
         <!-- Logo & Branding -->
         <div class="flex items-center space-x-4">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-0.5 flex items-center justify-center emerald-glow">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-0.5 flex items-center justify-center emerald-glow">
                 <div class="w-full h-full bg-darkbg rounded-[10px] flex items-center justify-center">
                     <i class="fa-solid fa-leaf text-emerald-400 text-lg"></i>
                 </div>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">EcoPulse</h1>
-                    <span class="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Enterprise v2.5</span>
+                    <h1
+                        class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                        EcoPulse</h1>
+                    <span
+                        class="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Enterprise
+                        v2.5</span>
                 </div>
-                <p class="text-xs text-slate-400 font-medium">Urban Climate Risk, Carbon Metrics & Predictive Spatial Intelligence</p>
+                <p class="text-xs text-slate-400 font-medium">Urban Climate Risk, Carbon Metrics & Predictive Spatial
+                    Intelligence</p>
             </div>
         </div>
 
         <!-- Global Search Controller -->
         <div class="hidden lg:flex items-center space-x-3 w-1/3 max-w-xl">
             <div class="relative w-full">
-                <input type="text" id="globalCitySearch" placeholder="Search target city (e.g. Karachi, London, Tokyo, New York, Dubai)..." 
+                <input type="text" id="globalCitySearch"
+                    placeholder="Search target city (e.g. Karachi, London, Tokyo, New York, Dubai)..."
                     class="w-full bg-darkbg border border-bordercolor rounded-xl px-4 py-2 pl-10 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition-all font-medium placeholder:text-slate-500">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-500 text-xs"></i>
-                <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-xs">
+                <button onclick="clearSearch()" id="clearSearchBtn"
+                    class="hidden absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-xs">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <button onclick="executeSearch()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-950/50 flex items-center space-x-2 shrink-0">
+            <button onclick="executeSearch()"
+                class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-950/50 flex items-center space-x-2 shrink-0">
                 <i class="fa-solid fa-bolt text-amber-300"></i>
                 <span>Analyze</span>
             </button>
@@ -268,19 +354,22 @@
 
         <!-- Right Side Action Controls -->
         <div class="flex items-center space-x-3">
-            <button onclick="openModal('compareModal')" class="hidden sm:flex items-center space-x-2 bg-panelbg hover:bg-slate-800 border border-bordercolor text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition">
+            <button onclick="openModal('compareModal')"
+                class="hidden sm:flex items-center space-x-2 bg-panelbg hover:bg-slate-800 border border-bordercolor text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition">
                 <i class="fa-solid fa-scale-balanced text-cyan-400"></i>
                 <span>Multi-City Matrix</span>
             </button>
 
-            <button onclick="openModal('exportModal')" class="hidden sm:flex items-center space-x-2 bg-panelbg hover:bg-slate-800 border border-bordercolor text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition">
+            <button onclick="openModal('exportModal')"
+                class="hidden sm:flex items-center space-x-2 bg-panelbg hover:bg-slate-800 border border-bordercolor text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition">
                 <i class="fa-solid fa-download text-emerald-400"></i>
                 <span>Export Report</span>
             </button>
 
             <div class="h-6 w-px bg-bordercolor hidden sm:block"></div>
 
-            <div class="flex items-center space-x-2 bg-emerald-950/60 border border-emerald-800/40 px-3 py-1.5 rounded-xl">
+            <div
+                class="flex items-center space-x-2 bg-emerald-950/60 border border-emerald-800/40 px-3 py-1.5 rounded-xl">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 live-dot"></span>
                 <span class="text-xs font-mono font-bold text-emerald-300 uppercase">Live Telemetry</span>
             </div>
@@ -306,22 +395,28 @@
                     <div>
                         <div class="flex items-center space-x-2">
                             <h2 id="currentCityTitle" class="text-lg font-bold text-white">Karachi, Pakistan</h2>
-                            <span id="currentCityCoords" class="text-[11px] font-mono text-slate-400 bg-darkbg px-2 py-0.5 rounded border border-bordercolor">24.8607° N, 67.0011° E</span>
+                            <span id="currentCityCoords"
+                                class="text-[11px] font-mono text-slate-400 bg-darkbg px-2 py-0.5 rounded border border-bordercolor">24.8607°
+                                N, 67.0011° E</span>
                         </div>
-                        <p id="currentCitySubtitle" class="text-xs text-slate-400 mt-0.5">Primary Coastal Urban Agglomeration • Climate Hazard Zone 3</p>
+                        <p id="currentCitySubtitle" class="text-xs text-slate-400 mt-0.5">Primary Coastal Urban
+                            Agglomeration • Climate Hazard Zone 3</p>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-6 text-right">
                     <div>
-                        <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Climate Vulnerability</p>
-                        <p id="cityRiskBadge" class="text-sm font-bold text-amber-400 flex items-center justify-end space-x-1">
+                        <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Climate
+                            Vulnerability</p>
+                        <p id="cityRiskBadge"
+                            class="text-sm font-bold text-amber-400 flex items-center justify-end space-x-1">
                             <i class="fa-solid fa-triangle-exclamation text-xs"></i>
                             <span>7.4 / 10 (High)</span>
                         </p>
                     </div>
                     <div>
-                        <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Live Data Stream</p>
+                        <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Live Data Stream
+                        </p>
                         <p class="text-sm font-bold text-emerald-400 font-mono">100% Operational</p>
                     </div>
                 </div>
@@ -336,8 +431,10 @@
                     </div>
                     <div class="flex items-center space-x-3">
                         <span class="text-xs text-slate-400">Layer Opacity:</span>
-                        <input type="range" id="opacitySlider" min="10" max="100" value="85" oninput="changeMapOpacity(this.value)" class="w-24 accent-emerald-500">
-                        <button onclick="resetMapLocation()" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium border border-emerald-500/30 px-2.5 py-1 rounded-lg bg-emerald-500/10">
+                        <input type="range" id="opacitySlider" min="10" max="100" value="85"
+                            oninput="changeMapOpacity(this.value)" class="w-24 accent-emerald-500">
+                        <button onclick="resetMapLocation()"
+                            class="text-xs text-emerald-400 hover:text-emerald-300 font-medium border border-emerald-500/30 px-2.5 py-1 rounded-lg bg-emerald-500/10">
                             Center View
                         </button>
                     </div>
@@ -348,13 +445,16 @@
                     <div id="map"></div>
 
                     <!-- Map Floating Legend Overlay -->
-                    <div class="absolute bottom-4 right-4 z-[400] glass-card p-3 text-xs space-y-2 pointer-events-auto max-w-xs">
+                    <div
+                        class="absolute bottom-4 right-4 z-[400] glass-card p-3 text-xs space-y-2 pointer-events-auto max-w-xs">
                         <div class="flex items-center justify-between border-b border-bordercolor pb-1">
                             <span class="font-bold text-slate-300">Heat Intensity Legend</span>
                             <i class="fa-solid fa-circle-info text-slate-500"></i>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <div class="h-2 flex-1 rounded bg-gradient-to-r from-emerald-500 via-amber-400 via-orange-500 to-rose-600"></div>
+                            <div
+                                class="h-2 flex-1 rounded bg-gradient-to-r from-emerald-500 via-amber-400 via-orange-500 to-rose-600">
+                            </div>
                         </div>
                         <div class="flex justify-between text-[10px] text-slate-400 font-mono">
                             <span>Optimal</span>
@@ -369,10 +469,13 @@
             <div class="glass-card p-5">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">10 Spatial Analytical Map Layers</h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Toggle real-time geographical overlays onto the active viewing canvas</p>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">10 Spatial Analytical Map
+                            Layers</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Toggle real-time geographical overlays onto the
+                            active viewing canvas</p>
                     </div>
-                    <button onclick="selectAllLayers()" class="text-xs text-cyan-400 hover:underline">Select All</button>
+                    <button onclick="selectAllLayers()" class="text-xs text-cyan-400 hover:underline">Select
+                        All</button>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="layerButtonsGrid">
@@ -382,7 +485,9 @@
 
             <!-- Climate Scenario Simulator Component -->
             <div class="glass-card p-6 relative overflow-hidden">
-                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div
+                    class="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none">
+                </div>
 
                 <div class="flex items-center justify-between pb-4 border-b border-bordercolor mb-4">
                     <div class="flex items-center space-x-3">
@@ -391,10 +496,12 @@
                         </div>
                         <div>
                             <h3 class="text-sm font-bold text-slate-100">Climate Scenario Impact Simulator</h3>
-                            <p class="text-xs text-slate-400">Simulate structural urban interventions and model predicted climate responses</p>
+                            <p class="text-xs text-slate-400">Simulate structural urban interventions and model
+                                predicted climate responses</p>
                         </div>
                     </div>
-                    <button onclick="resetScenarioSliders()" class="text-xs text-slate-300 bg-panelbg hover:bg-slate-800 border border-bordercolor px-3 py-1.5 rounded-lg transition">
+                    <button onclick="resetScenarioSliders()"
+                        class="text-xs text-slate-300 bg-panelbg hover:bg-slate-800 border border-bordercolor px-3 py-1.5 rounded-lg transition">
                         Reset Defaults
                     </button>
                 </div>
@@ -406,7 +513,8 @@
                             <span class="font-medium text-slate-300">Urban Built Density</span>
                             <span id="sliderValueDensity" class="font-mono font-bold text-amber-400">65%</span>
                         </div>
-                        <input type="range" id="simDensity" min="10" max="100" value="65" oninput="runSimulationEngine()" class="w-full">
+                        <input type="range" id="simDensity" min="10" max="100" value="65"
+                            oninput="runSimulationEngine()" class="w-full">
                         <p class="text-[10px] text-slate-500">Models concrete coverage and surface thermal retention</p>
                     </div>
 
@@ -416,7 +524,8 @@
                             <span class="font-medium text-slate-300">Green Infrastructure Canopy</span>
                             <span id="sliderValueGreen" class="font-mono font-bold text-emerald-400">22%</span>
                         </div>
-                        <input type="range" id="simGreen" min="5" max="80" value="22" oninput="runSimulationEngine()" class="w-full accent-emerald-500">
+                        <input type="range" id="simGreen" min="5" max="80" value="22" oninput="runSimulationEngine()"
+                            class="w-full accent-emerald-500">
                         <p class="text-[10px] text-slate-500">Models urban canopy cooling and rainwater absorption</p>
                     </div>
 
@@ -426,13 +535,15 @@
                             <span class="font-medium text-slate-300">Grid Renewable Energy Share</span>
                             <span id="sliderValueRenewable" class="font-mono font-bold text-cyan-400">30%</span>
                         </div>
-                        <input type="range" id="simRenewable" min="0" max="100" value="30" oninput="runSimulationEngine()" class="w-full accent-cyan-500">
+                        <input type="range" id="simRenewable" min="0" max="100" value="30"
+                            oninput="runSimulationEngine()" class="w-full accent-cyan-500">
                         <p class="text-[10px] text-slate-500">Models local power generation carbon displacement</p>
                     </div>
                 </div>
 
                 <!-- Calculated Output Metrics Panel -->
-                <div class="p-4 bg-darkbg/90 border border-bordercolor rounded-xl grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div
+                    class="p-4 bg-darkbg/90 border border-bordercolor rounded-xl grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div class="border-r border-bordercolor/60 pr-2">
                         <p class="text-[10px] uppercase font-bold text-slate-400">Predicted Temp Shift</p>
                         <p id="calcTempShift" class="text-lg font-black text-amber-400 font-mono mt-1">+1.45 °C</p>
@@ -450,36 +561,56 @@
                         <p id="calcSustScore" class="text-lg font-black text-teal-300 font-mono mt-1">68.2 / 100</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Historical Map Playback Timeline Engine -->
-            <div class="glass-card p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Historical Playback & Trend Timeline</h3>
+                <!-- AI Model Live Validation Panel (Placed Right Below Output Metrics) -->
+                <div class="mt-4 p-4 bg-darkbg/90 border border-emerald-500/50 rounded-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <h5
+                            class="text-xs uppercase tracking-wider font-bold text-emerald-400 flex items-center gap-1.5">
+                            <span>🤖</span> AI Model Live Validation
+                        </h5>
+                        <span
+                            class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono border border-emerald-500/30">XGBoost
+                            Engine</span>
                     </div>
-                    <span id="playbackDateDisplay" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-lg">Today (Live Stream)</span>
+                    <div id="ai-metrics-container">
+                        <p class="text-xs text-slate-400 animate-pulse">Loading real-time model telemetry...</p>
+                    </div>
                 </div>
 
-                <div class="flex items-center space-x-4">
-                    <button onclick="toggleTimelinePlayback()" id="playPauseBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white w-10 h-10 rounded-xl transition flex items-center justify-center shrink-0 shadow-lg shadow-emerald-950/50">
-                        <i class="fa-solid fa-play text-sm" id="playIcon"></i>
-                    </button>
-                    <div class="flex-1 space-y-1">
-                        <input type="range" id="timelineSlider" min="0" max="6" value="6" oninput="handleTimelineSlider(this.value)" class="w-full accent-emerald-500">
-                        <div class="flex justify-between text-[10px] font-mono text-slate-500">
-                            <span>T-6 Days</span>
-                            <span>T-5 Days</span>
-                            <span>T-4 Days</span>
-                            <span>T-3 Days</span>
-                            <span>T-2 Days</span>
-                            <span>Yesterday</span>
-                            <span class="text-emerald-400 font-bold">Today</span>
+                <!-- Historical Map Playback Timeline Engine -->
+                <div class="glass-card p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Historical Playback &
+                                Trend Timeline</h3>
+                        </div>
+                        <span id="playbackDateDisplay"
+                            class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-lg">Today
+                            (Live Stream)</span>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleTimelinePlayback()" id="playPauseBtn"
+                            class="bg-emerald-600 hover:bg-emerald-500 text-white w-10 h-10 rounded-xl transition flex items-center justify-center shrink-0 shadow-lg shadow-emerald-950/50">
+                            <i class="fa-solid fa-play text-sm" id="playIcon"></i>
+                        </button>
+                        <div class="flex-1 space-y-1">
+                            <input type="range" id="timelineSlider" min="0" max="6" value="6"
+                                oninput="handleTimelineSlider(this.value)" class="w-full accent-emerald-500">
+                            <div class="flex justify-between text-[10px] font-mono text-slate-500">
+                                <span>T-6 Days</span>
+                                <span>T-5 Days</span>
+                                <span>T-4 Days</span>
+                                <span>T-3 Days</span>
+                                <span>T-2 Days</span>
+                                <span>Yesterday</span>
+                                <span class="text-emerald-400 font-bold">Today</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
         </section>
 
@@ -497,7 +628,8 @@
                         </h3>
                         <p class="text-[11px] text-slate-400">Real-time parameters for active location</p>
                     </div>
-                    <button onclick="openModal('shapModal')" class="text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20 transition flex items-center space-x-1.5">
+                    <button onclick="openModal('shapModal')"
+                        class="text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20 transition flex items-center space-x-1.5">
                         <i class="fa-solid fa-brain"></i>
                         <span>SHAP Explain</span>
                     </button>
@@ -526,7 +658,8 @@
             <div class="glass-card p-5 flex flex-col flex-1">
                 <div class="flex items-center justify-between pb-3 border-b border-bordercolor mb-3">
                     <div class="flex items-center space-x-2">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                        <div
+                            class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
                             <i class="fa-solid fa-robot text-emerald-400 text-xs"></i>
                         </div>
                         <div>
@@ -534,24 +667,31 @@
                             <p class="text-[10px] text-slate-400">LLM Assistant for Climate Diagnostics</p>
                         </div>
                     </div>
-                    <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">Active</span>
+                    <span
+                        class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">Active</span>
                 </div>
 
                 <!-- Chat Messages Scroll Container -->
-                <div id="aiChatBox" class="bg-darkbg/90 border border-bordercolor rounded-xl p-3 h-52 overflow-y-auto space-y-3 mb-3 text-xs">
-                    <div class="bg-panelbg/80 p-3 rounded-xl text-slate-300 max-w-[90%] border border-bordercolor space-y-1">
+                <div id="aiChatBox"
+                    class="bg-darkbg/90 border border-bordercolor rounded-xl p-3 h-52 overflow-y-auto space-y-3 mb-3 text-xs">
+                    <div
+                        class="bg-panelbg/80 p-3 rounded-xl text-slate-300 max-w-[90%] border border-bordercolor space-y-1">
                         <p class="font-semibold text-emerald-400 text-[11px] flex items-center">
                             <i class="fa-solid fa-circle-info mr-1"></i> EcoPulse Assistant
                         </p>
-                        <p>Hello! I am your AI climate intelligence assistant. You can ask me about urban heat island factors, local AQI trends, or mitigation strategies for <span class="text-white font-semibold" id="aiChatActiveCity">Karachi</span>.</p>
+                        <p>Hello! I am your AI climate intelligence assistant. You can ask me about urban heat island
+                            factors, local AQI trends, or mitigation strategies for <span
+                                class="text-white font-semibold" id="aiChatActiveCity">Karachi</span>.</p>
                     </div>
                 </div>
 
                 <!-- Chat Input Controls -->
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="aiChatInput" onkeypress="handleAiChatKey(event)" placeholder="Ask climate AI assistant..." 
+                    <input type="text" id="aiChatInput" onkeypress="handleAiChatKey(event)"
+                        placeholder="Ask climate AI assistant..."
                         class="flex-1 bg-darkbg border border-bordercolor text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500 transition">
-                    <button onclick="sendAiMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-emerald-950/50">
+                    <button onclick="sendAiMessage()"
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-emerald-950/50">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
@@ -566,7 +706,8 @@
     <!-- ===================================================================== -->
 
     <!-- Multi-City Comparison Matrix Modal -->
-    <div id="compareModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="compareModal"
+        class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-card max-w-5xl w-full p-6 flex flex-col max-h-[90vh] overflow-hidden">
             <div class="flex items-center justify-between pb-4 border-b border-bordercolor">
                 <div class="flex items-center space-x-3">
@@ -575,7 +716,8 @@
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-slate-100">Multi-City Comparative Analysis Engine</h3>
-                        <p class="text-xs text-slate-400">Side-by-side breakdown of all 14 metrics across global metropolitan regions</p>
+                        <p class="text-xs text-slate-400">Side-by-side breakdown of all 14 metrics across global
+                            metropolitan regions</p>
                     </div>
                 </div>
                 <button onclick="closeModal('compareModal')" class="text-slate-400 hover:text-white transition">
@@ -604,7 +746,8 @@
 
             <div class="pt-4 border-t border-bordercolor flex justify-between items-center text-xs text-slate-400">
                 <span>Displaying 14 indicators across 5 primary monitoring centers</span>
-                <button onclick="closeModal('compareModal')" class="bg-panelbg hover:bg-slate-800 border border-bordercolor px-4 py-2 rounded-xl font-semibold text-slate-200 transition">
+                <button onclick="closeModal('compareModal')"
+                    class="bg-panelbg hover:bg-slate-800 border border-bordercolor px-4 py-2 rounded-xl font-semibold text-slate-200 transition">
                     Close Matrix
                 </button>
             </div>
@@ -612,7 +755,8 @@
     </div>
 
     <!-- SHAP AI Explainability Modal -->
-    <div id="shapModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="shapModal"
+        class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-card max-w-2xl w-full p-6 flex flex-col max-h-[90vh]">
             <div class="flex items-center justify-between pb-4 border-b border-bordercolor mb-4">
                 <div class="flex items-center space-x-3">
@@ -621,7 +765,8 @@
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-slate-100">SHAP Explainable AI Intelligence</h3>
-                        <p class="text-xs text-slate-400">Feature importance vector weights for Urban Heat Island risk prediction</p>
+                        <p class="text-xs text-slate-400">Feature importance vector weights for Urban Heat Island risk
+                            prediction</p>
                     </div>
                 </div>
                 <button onclick="closeModal('shapModal')" class="text-slate-400 hover:text-white transition">
@@ -631,7 +776,9 @@
 
             <div class="space-y-4 overflow-y-auto flex-1 pr-2 text-xs">
                 <p class="text-slate-300">
-                    The chart below renders the **SHAP (SHapley Additive exPlanations)** values contributing to the current UHI Risk Index forecast. Positive values indicate factors pushing risk higher, while negative values offset risk.
+                    The chart below renders the **SHAP (SHapley Additive exPlanations)** values contributing to the
+                    current UHI Risk Index forecast. Positive values indicate factors pushing risk higher, while
+                    negative values offset risk.
                 </p>
 
                 <!-- SHAP Feature Bar Breakdown -->
@@ -642,7 +789,8 @@
 
             <div class="pt-4 border-t border-bordercolor mt-4 flex justify-between items-center text-xs text-slate-400">
                 <span>Base Model Value: 0.42 • Output Value: 0.74</span>
-                <button onclick="closeModal('shapModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-semibold transition">
+                <button onclick="closeModal('shapModal')"
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-semibold transition">
                     Acknowledge
                 </button>
             </div>
@@ -650,7 +798,8 @@
     </div>
 
     <!-- Export Report Modal -->
-    <div id="exportModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="exportModal"
+        class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-card max-w-md w-full p-6 flex flex-col">
             <div class="flex items-center justify-between pb-4 border-b border-bordercolor mb-4">
                 <div class="flex items-center space-x-3">
@@ -670,7 +819,8 @@
             <div class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-300 font-semibold mb-1">Select Export Format</label>
-                    <select id="exportFormatSelect" class="w-full bg-darkbg border border-bordercolor rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <select id="exportFormatSelect"
+                        class="w-full bg-darkbg border border-bordercolor rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                         <option value="pdf">Comprehensive Executive Report (.PDF)</option>
                         <option value="csv">Raw Telemetry Dataset (.CSV)</option>
                         <option value="geojson">GIS GeoJSON Layer Collection (.GEOJSON)</option>
@@ -695,10 +845,12 @@
             </div>
 
             <div class="pt-6 border-t border-bordercolor mt-6 flex justify-end space-x-3">
-                <button onclick="closeModal('exportModal')" class="bg-panelbg hover:bg-slate-800 border border-bordercolor px-4 py-2 rounded-xl text-xs font-semibold text-slate-300">
+                <button onclick="closeModal('exportModal')"
+                    class="bg-panelbg hover:bg-slate-800 border border-bordercolor px-4 py-2 rounded-xl text-xs font-semibold text-slate-300">
                     Cancel
                 </button>
-                <button onclick="triggerDownloadReport()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-emerald-950/50 flex items-center space-x-2">
+                <button onclick="triggerDownloadReport()"
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-emerald-950/50 flex items-center space-x-2">
                     <i class="fa-solid fa-download"></i>
                     <span>Download Report</span>
                 </button>
@@ -886,7 +1038,7 @@
 
         function initLeafletMap() {
             const city = CITIES_DATA[activeCityKey];
-            
+
             // Instantiate Leaflet Map Container
             mapInstance = L.map('map', {
                 zoomControl: true,
@@ -972,11 +1124,10 @@
             MAP_LAYERS.forEach((layer, idx) => {
                 const btn = document.createElement('button');
                 btn.onclick = () => toggleLayer(idx);
-                btn.className = `p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all ${
-                    layer.active 
-                        ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300 emerald-glow' 
+                btn.className = `p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all ${layer.active
+                        ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300 emerald-glow'
                         : 'bg-darkbg/80 border-bordercolor text-slate-400 hover:text-slate-200'
-                }`;
+                    }`;
                 btn.innerHTML = `
                     <i class="fa-solid ${layer.icon} text-xs" style="color: ${layer.active ? layer.color : '#94a3b8'}"></i>
                     <span class="truncate">${layer.name}</span>
@@ -1247,9 +1398,9 @@
             sampleKeys.forEach(mKey => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-panelbg/50 transition border-b border-bordercolor/40";
-                
+
                 let rowHtml = `<td class="p-3 font-semibold text-slate-300 font-sans">${CITIES_DATA["Karachi"].metrics[mKey].label}</td>`;
-                
+
                 ["Karachi", "London", "Tokyo", "New York", "Dubai"].forEach(cKey => {
                     rowHtml += `<td class="p-3">${CITIES_DATA[cKey].metrics[mKey].val}</td>`;
                 });
@@ -1294,4 +1445,5 @@
         }
     </script>
 </body>
+
 </html>

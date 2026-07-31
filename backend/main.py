@@ -992,6 +992,27 @@ def render_about_page():
     </body>
     </html>
     """
+# =====================================================================
+# 8. Model Metrics
+# =====================================================================
+@app.get("/api/model-metrics")
+async def get_model_metrics():
+    """
+    Returns real, dynamically calculated XGBoost model validation metrics.
+    """
+    try:
+        with open("metrics.json", "r") as f:
+            metrics = json.load(f)
+        return {
+            "status": "success",
+            "model": "XGBoost Regressor",
+            "metrics": metrics
+        }
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404, 
+            detail="Metrics file not found. Please run train_model.py first."
+        )
 
 if __name__ == "__main__":
     import uvicorn
