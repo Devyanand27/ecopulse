@@ -1,341 +1,297 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoPulse - Dynamic Multi-City Comparison</title>
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857'
-                        },
-                        darkbg: '#060a12',
-                        surface: '#0b1326',
-                        cardbg: '#111c35',
-                        panelbg: '#172442',
-                        bordercolor: '#1e2e52'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
+    <title>EcoPulse - Dynamic Global City Climate Comparison</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background-color: #060a12;
-            color: #f1f5f9;
-            font-family: 'Inter', sans-serif;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background:#0b0f17; color:#e6edf3; display:flex; flex-direction:column; min-height:100vh; }
+        
+        /* Navbar Styling */
+        .navbar { display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:#111622; border-bottom:1px solid #212636; }
+        .logo { font-size:1.2rem; font-weight:700; color:#38bdf8; text-decoration:none; }
+        .nav-links a { color:#8b949e; text-decoration:none; margin-left:16px; font-size:0.9rem; font-weight:500; }
+        .nav-links a:hover, .nav-links a.active { color:#38bdf8; }
 
-        .glass-card {
-            background: rgba(17, 28, 53, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(30, 46, 82, 0.6);
-            border-radius: 1rem;
+        .container { padding:24px; max-width:1200px; margin:0 auto; width:100%; }
+        h1 { color:#38bdf8; font-size:1.8rem; margin-bottom:20px; }
+        .selector-bar { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+        .select-group { display:flex; flex-direction:column; gap:6px; flex:1; min-width:280px; position:relative; }
+        label { font-size:0.85rem; color:#8b949e; font-weight:600; }
+        .input-box-wrap { display:flex; gap:8px; position:relative; }
+        input { flex:1; background:#111622; border:1px solid #212636; color:#fff; padding:10px 12px; border-radius:8px; font-size:0.9rem; outline:none; }
+        input:focus { border-color:#38bdf8; }
+        button.fetch-btn { background:#0284c7; color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.85rem; transition:background 0.2s; }
+        button.fetch-btn:hover { background:#0369a1; }
+        
+        /* Dynamic Live Search Dropdown */
+        .suggestions-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 70px;
+            background: #161b26;
+            border: 1px solid #283044;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 999;
+            display: none;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
         }
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #d1d5db;
+            border-bottom: 1px solid #1f293d;
+        }
+        .suggestion-item:hover { background: #222b3e; color: #38bdf8; }
 
-        .emerald-glow {
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
-        }
+        .compare-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px; margin-bottom:30px; }
+        .city-card { background:#111622; border:1px solid #212636; border-radius:12px; padding:20px; min-height:280px; position:relative; }
+        .city-name { font-size:1.4rem; font-weight:700; color:#38bdf8; margin-bottom:4px; }
+        .country-name { font-size:0.85rem; color:#8b949e; margin-bottom:16px; }
+        .metric-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1c2333; font-size:0.9rem; }
+        .metric-label { color:#8b949e; }
+        .metric-value { font-weight:600; color:#f1f5f9; }
+        .chart-card { background:#111622; border:1px solid #212636; border-radius:12px; padding:20px; }
+        .loading-spinner { display:none; color:#38bdf8; font-size:0.85rem; margin-top:4px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col bg-darkbg text-slate-100">
+<body>
+    <div class="navbar">
+        <a href="/" class="logo">🌐 EcoPulse v4.2</a>
+        <div class="nav-links">
+            <a href="/">🗺️ Live Map</a>
+            <a href="/compare" class="active">📊 Cities Compare</a>
+            <a href="/about">ℹ️ About</a>
+        </div>
+    </div>
 
-    <!-- NAVIGATION HEADER -->
-    <header class="sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-bordercolor px-6 py-3.5 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-cyan-400 p-0.5 flex items-center justify-center emerald-glow">
-                <div class="w-full h-full bg-darkbg rounded-[10px] flex items-center justify-center">
-                    <i class="fa-solid fa-globe text-emerald-400"></i>
+    <div class="container">
+        <h1>📊 Global Cities Climate Matrix Comparison</h1>
+
+        <div class="selector-bar">
+            <!-- City 1 Input -->
+            <div class="select-group">
+                <label>Primary City (Type Any City Worldwide)</label>
+                <div class="input-box-wrap">
+                    <input type="text" id="city1Input" value="Islamabad" placeholder="Search any city in the world..." oninput="handleCitySearch(1)" autocomplete="off">
+                    <button class="fetch-btn" onclick="fetchCityData(1)">Compare</button>
                 </div>
+                <div class="suggestions-box" id="sug1"></div>
+                <div class="loading-spinner" id="load1">Fetching real-time telemetry...</div>
             </div>
-            <div class="flex items-center space-x-2">
-                <h1 class="text-lg font-extrabold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">EcoPulse</h1>
-                <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">v4.0 Enterprise</span>
+
+            <!-- City 2 Input -->
+            <div class="select-group">
+                <label>Comparison City (Type Any City Worldwide)</label>
+                <div class="input-box-wrap">
+                    <input type="text" id="city2Input" value="Lahore" placeholder="Search any city in the world..." oninput="handleCitySearch(2)" autocomplete="off">
+                    <button class="fetch-btn" onclick="fetchCityData(2)">Compare</button>
+                </div>
+                <div class="suggestions-box" id="sug2"></div>
+                <div class="loading-spinner" id="load2">Fetching real-time telemetry...</div>
             </div>
         </div>
 
-        <nav class="flex items-center space-x-4 text-xs font-semibold">
-            <a href="dashboard.html" class="text-slate-400 hover:text-emerald-400 transition flex items-center space-x-1.5">
-                <i class="fa-solid fa-map"></i>
-                <span>Live Map</span>
-            </a>
-            <a href="compare.html" class="text-emerald-400 border-b-2 border-emerald-400 pb-1 flex items-center space-x-1.5">
-                <i class="fa-solid fa-city"></i>
-                <span>Cities Compare</span>
-            </a>
-        </nav>
-    </header>
-
-    <!-- MAIN COMPARE CONTAINER -->
-    <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
-
-        <!-- TITLE & SEARCH SECTION -->
-        <div class="glass-card p-6 space-y-4">
-            <div class="flex items-center space-x-2">
-                <div class="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg border border-cyan-500/20">
-                    <i class="fa-solid fa-sliders text-base"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-slate-100">Live Multi-City Comparison Engine</h2>
-                    <p class="text-xs text-slate-400">Add 2 to 4 cities below (e.g., Tokyo, Cairo, Tharparkar, Dubai, London) to analyze real-time climate data side-by-side.</p>
-                </div>
-            </div>
-
-            <!-- CITY SELECTION INPUTS -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2">
-                <div>
-                    <label class="text-[11px] font-semibold text-slate-400 mb-1 block">City 1 (Required)</label>
-                    <input type="text" id="city1" value="Lahore" class="w-full bg-surface border border-bordercolor rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-slate-100" placeholder="e.g. Lahore, Tokyo">
-                </div>
-                <div>
-                    <label class="text-[11px] font-semibold text-slate-400 mb-1 block">City 2 (Required)</label>
-                    <input type="text" id="city2" value="Dubai" class="w-full bg-surface border border-bordercolor rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-slate-100" placeholder="e.g. Dubai, Cairo">
-                </div>
-                <div>
-                    <label class="text-[11px] font-semibold text-slate-400 mb-1 block">City 3 (Optional)</label>
-                    <input type="text" id="city3" value="London" class="w-full bg-surface border border-bordercolor rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-slate-100" placeholder="e.g. London, Tharparkar">
-                </div>
-                <div>
-                    <label class="text-[11px] font-semibold text-slate-400 mb-1 block">City 4 (Optional)</label>
-                    <input type="text" id="city4" value="" class="w-full bg-surface border border-bordercolor rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-slate-100" placeholder="e.g. Tokyo, Sydney">
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between pt-2">
-                <span id="errorMessage" class="text-xs text-rose-400 font-medium hidden">Please enter at least 2 valid cities.</span>
-                <button onclick="compareCities()" class="ml-auto bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-semibold text-xs px-5 py-2.5 rounded-lg transition flex items-center space-x-2 shadow-lg">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <span>Fetch Live Data & Compare</span>
-                </button>
-            </div>
+        <div class="compare-grid">
+            <div class="city-card" id="card1"></div>
+            <div class="city-card" id="card2"></div>
         </div>
 
-        <!-- LOADING SPINNER -->
-        <div id="loadingSpinner" class="hidden text-center py-12">
-            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-emerald-400 mb-3"></i>
-            <p class="text-xs text-slate-400 font-mono">Fetching real-time satellite & environmental telemetry...</p>
+        <div class="chart-card">
+            <h3 style="color:#38bdf8; margin-bottom:16px;">Real-Time Multi-Metric Visual Comparison</h3>
+            <canvas id="compareChart" height="100"></canvas>
         </div>
+    </div>
 
-        <!-- DYNAMIC COMPARISON MATRIX TABLE -->
-        <div id="comparisonContainer" class="glass-card overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse">
-                    <thead>
-                        <tr class="bg-surface/80 border-b border-bordercolor text-slate-300 font-semibold" id="tableHeaderRow">
-                            <th class="p-4 w-1/5 min-w-[150px]">Environmental Metric</th>
-                            <!-- Dynamic City Headers will be injected here -->
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-bordercolor/50 font-medium" id="tableBody">
-                        <!-- Dynamic Metric Rows will be injected here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- REAL-TIME DATA FETCHING & UI LOGIC SCRIPT -->
     <script>
-        // Initial Fetch on Load
-        document.addEventListener('DOMContentLoaded', () => {
-            compareCities();
+        let city1Telemetry = null;
+        let city2Telemetry = null;
+        let compareChart = null;
+        let searchDebounce = { 1: null, 2: null };
+
+        // Global Dynamic Geocoding Search
+        async function handleCitySearch(cityNum) {
+            const inputVal = document.getElementById(`city${cityNum}Input`).value.trim();
+            const sugBox = document.getElementById(`sug${cityNum}`);
+
+            if (inputVal.length < 2) {
+                sugBox.style.display = 'none';
+                return;
+            }
+
+            clearTimeout(searchDebounce[cityNum]);
+            searchDebounce[cityNum] = setTimeout(async () => {
+                try {
+                    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(inputVal)}&count=6&language=en&format=json`);
+                    const data = await res.json();
+                    
+                    if (!data.results || data.results.length === 0) {
+                        sugBox.style.display = 'none';
+                        return;
+                    }
+
+                    sugBox.innerHTML = '';
+                    data.results.forEach(city => {
+                        const country = city.country ? `, ${city.country}` : '';
+                        const admin = city.admin1 ? ` (${city.admin1})` : '';
+                        const item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        item.innerText = `${city.name}${admin}${country}`;
+                        item.onclick = () => {
+                            document.getElementById(`city${cityNum}Input`).value = city.name;
+                            sugBox.style.display = 'none';
+                            fetchCityData(cityNum);
+                        };
+                        sugBox.appendChild(item);
+                    });
+                    sugBox.style.display = 'block';
+                } catch (e) {
+                    console.error('Geocoding error:', e);
+                }
+            }, 250);
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.select-group')) {
+                document.getElementById('sug1').style.display = 'none';
+                document.getElementById('sug2').style.display = 'none';
+            }
         });
 
-        async function compareCities() {
-            const inputs = ['city1', 'city2', 'city3', 'city4'];
-            const cityNames = inputs
-                .map(id => document.getElementById(id).value.trim())
-                .filter(name => name.length > 0);
-
-            const errorMsg = document.getElementById('errorMessage');
-            if (cityNames.length < 2) {
-                errorMsg.classList.remove('hidden');
-                return;
-            } else {
-                errorMsg.classList.add('hidden');
-            }
-
-            // Show Spinner
-            document.getElementById('loadingSpinner').classList.remove('hidden');
-            document.getElementById('comparisonContainer').classList.add('hidden');
-
-            try {
-                const results = await Promise.all(cityNames.map(city => fetchCityTelemetry(city)));
-                const validResults = results.filter(res => res !== null);
-
-                if (validResults.length < 2) {
-                    alert("Could not retrieve enough valid city data. Please check city names.");
-                    return;
-                }
-
-                renderComparisonTable(validResults);
-            } catch (err) {
-                console.error("Comparison Error:", err);
-                alert("Error fetching telemetry data. Please try again.");
-            } finally {
-                document.getElementById('loadingSpinner').classList.add('hidden');
-                document.getElementById('comparisonContainer').classList.remove('hidden');
-            }
+        async function fetchTelemetryData(cityName) {
+            const res = await fetch(`/api/telemetry?city=${encodeURIComponent(cityName)}`);
+            if(!res.ok) throw new Error('City not found');
+            return await res.json();
         }
 
-        // Fetch Coordinates, Weather, AQI & Environmental Data from Open APIs
-        async function fetchCityTelemetry(cityName) {
-            try {
-                // 1. Geocoding API to get Latitude, Longitude, and Country Code
-                const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`);
-                const geoData = await geoRes.json();
-
-                if (!geoData.results || geoData.results.length === 0) {
-                    return null;
-                }
-
-                const location = geoData.results[0];
-                const lat = location.latitude;
-                const lon = location.longitude;
-                const country = location.country_code || location.country || '';
-
-                // 2. Weather API (Temperature, Humidity, Wind Speed)
-                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`);
-                const weatherData = await weatherRes.json();
-
-                // 3. Air Quality API (PM2.5, PM10, European AQI)
-                const airRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,european_aqi,pollen_grains_grass`);
-                const airData = await airRes.json();
-
-                const temp = weatherData.current?.temperature_2m ?? 'N/A';
-                const humidity = weatherData.current?.relative_humidity_2m ?? 'N/A';
-                const wind = weatherData.current?.wind_speed_10m ?? 'N/A';
-                const pm25 = airData.current?.pm2_5 ?? 'N/A';
-                const eAqi = airData.current?.european_aqi ?? 50;
-
-                // Calculate AQI text & color dynamically
-                let aqiStatus = "Good";
-                let aqiClass = "text-emerald-400";
-                if (eAqi > 50 && eAqi <= 100) { aqiStatus = "Moderate"; aqiClass = "text-amber-400"; }
-                else if (eAqi > 100) { aqiStatus = "Unhealthy"; aqiClass = "text-rose-400"; }
-
-                // Simulated Carbon Intensity calculation based on regional grid estimates
-                const carbonIntensity = Math.floor(120 + Math.abs(lat) * 4.5 + (lon % 50));
-
-                // Pollen estimation based on grass pollen telemetry / temperature
-                const grassPollen = airData.current?.pollen_grains_grass ?? Math.floor(Math.random() * 40);
-                let pollenStatus = "Low";
-                let pollenClass = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
-
-                if (grassPollen > 15 || temp > 28) {
-                    pollenStatus = "Moderate (Grass)";
-                    pollenClass = "bg-amber-500/20 text-amber-300 border-amber-500/30";
-                } 
-                if (grassPollen > 35 || (temp > 33 && humidity > 60)) {
-                    pollenStatus = "High Risk (Tree/Grass)";
-                    pollenClass = "bg-rose-500/20 text-rose-300 border-rose-500/30";
-                }
-
-                return {
-                    name: location.name,
-                    country: country,
-                    temp: `${temp}°C`,
-                    aqi: `${eAqi} (${aqiStatus})`,
-                    aqiClass: aqiClass,
-                    pollen: pollenStatus,
-                    pollenClass: pollenClass,
-                    carbon: `${carbonIntensity} gCO2/kWh`,
-                    humidity: `${humidity}%`,
-                    wind: `${wind} km/h`,
-                    coords: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`
-                };
-
-            } catch (err) {
-                console.error(`Error processing ${cityName}:`, err);
-                return null;
-            }
+        function parseNumber(str) {
+            if(!str) return 0;
+            const match = str.toString().match(/-?\d+(\.\d+)?/);
+            return match ? parseFloat(match[0]) : 0;
         }
 
-        // Render Dynamic Data into UI Table Matrix
-        function renderComparisonTable(cities) {
-            const headerRow = document.getElementById('tableHeaderRow');
-            const tableBody = document.getElementById('tableBody');
-
-            // Reset headers
-            headerRow.innerHTML = `<th class="p-4 w-1/5 min-w-[160px] text-slate-400">Environmental Metric</th>`;
+        function renderCityCard(data) {
+            if(!data) return `<div style="color:#ef4444; padding:20px;">Unable to load telemetry data.</div>`;
             
-            // Add City Columns Headers
-            cities.forEach(city => {
-                headerRow.innerHTML += `
-                    <th class="p-4 min-w-[180px] text-base font-bold text-white border-l border-bordercolor/50">
-                        <div class="flex items-center justify-between">
-                            <span>${city.name} <span class="text-xs font-mono text-slate-400 font-normal">${city.country}</span></span>
-                            <i class="fa-solid fa-location-dot text-emerald-400 text-xs"></i>
-                        </div>
-                    </th>
-                `;
-            });
+            return `
+                <div class="city-name">${data.city}</div>
+                <div class="country-name">📍 ${data.country} | Lat: ${data.coordinates.lat}, Lon: ${data.coordinates.lon}</div>
+                <div class="metric-row">
+                    <span class="metric-label">Temperature</span>
+                    <span class="metric-value" style="color:#f87171;">${data.temperature}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Urban Heat Island (UHI) Delta</span>
+                    <span class="metric-value" style="color:#f97316;">${data.uhi_index}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Ocean Surface Thermal</span>
+                    <span class="metric-value" style="color:#06b6d4;">${data.ocean_surface_heat}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Air Quality Index (AQI)</span>
+                    <span class="metric-value" style="color:#facc15;">${data.aqi}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Grid Carbon Intensity</span>
+                    <span class="metric-value">${data.grid_carbon_intensity}</span>
+                </div>
+                <div class="metric-row" style="border-bottom:none;">
+                    <span class="metric-label">Turbulence Risk Index</span>
+                    <span class="metric-value" style="color:#a855f7;">${data.turbulence_risk ? data.turbulence_risk.score : 0} / 100 (${data.turbulence_risk ? data.turbulence_risk.level : 'N/A'})</span>
+                </div>
+            `;
+        }
 
-            // Metrics Row Definitions
-            const metrics = [
-                { key: 'temp', label: 'Temperature', icon: 'fa-temperature-half text-cyan-400' },
-                { key: 'aqi', label: 'Air Quality Index (AQI)', icon: 'fa-wind text-amber-400', dynamicClass: 'aqiClass' },
-                { key: 'pollen', label: 'Pollen Severity', icon: 'fa-tree text-emerald-400', isBadge: true, dynamicClass: 'pollenClass' },
-                { key: 'carbon', label: 'Grid Carbon Intensity', icon: 'fa-bolt text-yellow-400' },
-                { key: 'humidity', label: 'Relative Humidity', icon: 'fa-droplet text-blue-400' },
-                { key: 'wind', label: 'Wind Velocity', icon: 'fa-arrow-up-a-z text-slate-400' },
-                { key: 'coords', label: 'Geo Coordinates', icon: 'fa-compass text-purple-400', mono: true }
-            ];
+        async function fetchCityData(cityNum) {
+            const inputId = cityNum === 1 ? 'city1Input' : 'city2Input';
+            const loadId = cityNum === 1 ? 'load1' : 'load2';
+            const cardId = cityNum === 1 ? 'card1' : 'card2';
+            const cityName = document.getElementById(inputId).value.trim();
 
-            // Reset Body
-            tableBody.innerHTML = '';
+            if(!cityName) return;
 
-            metrics.forEach(m => {
-                let rowHTML = `
-                    <tr class="hover:bg-surface/40 transition">
-                        <td class="p-4 text-slate-300 font-semibold flex items-center space-x-2">
-                            <i class="fa-solid ${m.icon} w-5"></i>
-                            <span>${m.label}</span>
-                        </td>
-                `;
+            document.getElementById(loadId).style.display = 'block';
 
-                cities.forEach(city => {
-                    const value = city[m.key];
-                    if (m.isBadge) {
-                        const badgeClass = city[m.dynamicClass];
-                        rowHTML += `
-                            <td class="p-4 border-l border-bordercolor/50">
-                                <span class="${badgeClass} border px-2.5 py-1 rounded text-[11px] font-semibold">${value}</span>
-                            </td>
-                        `;
-                    } else if (m.dynamicClass) {
-                        const customColor = city[m.dynamicClass];
-                        rowHTML += `<td class="p-4 font-mono font-bold ${customColor} border-l border-bordercolor/50">${value}</td>`;
-                    } else {
-                        rowHTML += `<td class="p-4 ${m.mono ? 'font-mono text-slate-400' : 'text-slate-200 font-bold'} border-l border-bordercolor/50">${value}</td>`;
+            try {
+                const data = await fetchTelemetryData(cityName);
+                if(cityNum === 1) city1Telemetry = data;
+                else city2Telemetry = data;
+
+                document.getElementById(cardId).innerHTML = renderCityCard(data);
+                updateChart();
+            } catch(err) {
+                document.getElementById(cardId).innerHTML = `<div style="color:#ef4444; padding:20px;">City "${cityName}" not found. Please try another city.</div>`;
+            } finally {
+                document.getElementById(loadId).style.display = 'none';
+            }
+        }
+
+        function updateChart() {
+            if(!city1Telemetry || !city2Telemetry) return;
+
+            const c1 = city1Telemetry;
+            const c2 = city2Telemetry;
+
+            const c1Temp = parseNumber(c1.temperature);
+            const c2Temp = parseNumber(c2.temperature);
+            const c1Uhi = parseNumber(c1.uhi_index);
+            const c2Uhi = parseNumber(c2.uhi_index);
+            const c1Ocean = parseNumber(c1.ocean_surface_heat);
+            const c2Ocean = parseNumber(c2.ocean_surface_heat);
+            const c1Aqi = c1.aqi || 0;
+            const c2Aqi = c2.aqi || 0;
+            const c1Carbon = parseNumber(c1.grid_carbon_intensity);
+            const c2Carbon = parseNumber(c2.grid_carbon_intensity);
+            const c1Turb = c1.turbulence_risk ? c1.turbulence_risk.score : 0;
+            const c2Turb = c2.turbulence_risk ? c2.turbulence_risk.score : 0;
+
+            if (compareChart) compareChart.destroy();
+
+            const ctx = document.getElementById('compareChart').getContext('2d');
+            compareChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Temp (°C)', 'UHI (°C)', 'Ocean Heat (°C)', 'AQI Index', 'Carbon (gCO2/kWh)', 'Turbulence'],
+                    datasets: [
+                        {
+                            label: c1.city,
+                            data: [c1Temp, c1Uhi, c1Ocean, c1Aqi, c1Carbon, c1Turb],
+                            backgroundColor: 'rgba(56, 189, 248, 0.7)',
+                            borderColor: '#38bdf8',
+                            borderWidth: 1
+                        },
+                        {
+                            label: c2.city,
+                            data: [c2Temp, c2Uhi, c2Ocean, c2Aqi, c2Carbon, c2Turb],
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: '#ef4444',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { ticks: { color: '#8b949e' } },
+                        y: { ticks: { color: '#8b949e' } }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#e6edf3' } }
                     }
-                });
-
-                rowHTML += `</tr>`;
-                tableBody.innerHTML += rowHTML;
+                }
             });
         }
-    </script>
 
+        window.onload = async () => {
+            await fetchCityData(1);
+            await fetchCityData(2);
+        };
+    </script>
 </body>
 </html>
