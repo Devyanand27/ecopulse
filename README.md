@@ -1,28 +1,29 @@
-# 🌐 EcoPulse - Enterprise Global Climate Intelligence Platform (v4.2.0)
+# 🌍 EcoPulse Enterprise - Global Climate & Telemetry Intelligence Platform
 
-**EcoPulse** is an enterprise-grade climate monitoring and predictive intelligence suite designed to bridge real-time environmental telemetry, satellite thermal hotspot data, and machine learning models into a unified interactive interface.
-
----
-
-## ✨ Features & Layers
-
-- **🏙️ Urban Heat Island (UHI) Diagnostics:** Real-time surface thermal anomaly tracking across dense concrete urban sectors versus baseline regions using NASA FIRMS hotspot correlation.
-- **🌊 Ocean Heat & Marine Anomalies:** Tracks coastal sea surface temperature build-ups and marine heatwave risk zones.
-- **⚡ Carbon Grid Intensity:** Real-time tracking of regional electrical grid emission rates (`gCO2eq/kWh`) integrated with the Electricity Maps API.
-- **💨 Atmospheric Turbulence & Wind Shear:** Real-time boundary-layer wind speed and gust differential evaluation for aviation safety and low-altitude structural hazard assessment.
-- **🌿 Botanical Pollen Tracking:** Active monitoring of airborne botanical allergen risk levels (Tree, Grass, Weed concentrations).
-- **🔥 NASA FIRMS Wildfire Monitoring:** Global satellite thermal hotspot detection featuring active Fire Radiative Power (FRP) metrics.
-- **🤖 Intelligent Climate AI Assistant:** Built-in AI bot trained to serve context-aware climate metrics, UHI rates, and atmospheric risk insights.
-- **🚨 Automated Risk Telemetry Alerts:** Background worker integration with SMTP (Port 465 SSL / 587 TLS) for real-time risk alert subscriptions.
+EcoPulse is an enterprise-grade environmental telemetry and predictive climate modeling dashboard built with **FastAPI** and **Chart.js**. It provides real-time tracking, geospatial visualization, multi-metric city comparison, and automated risk alert subscriptions.
 
 ---
 
-## 🛠️ Tech Stack
+## ⚡ Key Features
 
-- **Backend:** FastAPI, Python 3.10+, Uvicorn, Async HTTP (httpx/requests)
-- **Frontend UI:** Embedded HTML5, Leaflet.js (CartoDB Dark Tiles), Chart.js, CSS3
-- **External Data Providers:** Open-Meteo API, NASA FIRMS VIIRS Active Fire Data, Electricity Maps API
-- **Alert System:** Python `smtplib` (SSL/TLS), BackgroundTasks
+* **Global Dynamic City Comparison:** Real-time comparison across any city worldwide using Open-Meteo Geocoding API (Zero hardcoding).
+* **Automated Risk Subscriptions:** Instant email notifications powered by SendGrid HTTP Web API for UHI anomalies, high AQI, and turbulence alerts.
+* **Geospatial Hotspot Tracking:** Satellite thermal anomaly detection utilizing NASA FIRMS API.
+* **Grid Carbon Intensity:** Live power grid telemetry via Electricity Maps API.
+* **Aviation & Turbulence Risk Index:** Real-time atmospheric turbulence risk score evaluation.
+
+---
+
+## 🛠️ Environment Variables Setup
+
+Configure the following environment variables in your deployment platform (e.g., Render) or local `.env` file:
+
+| Variable | Description | Example / Value |
+| :--- | :--- | :--- |
+| `SENDGRID_API_KEY` | SendGrid Web API Key for email alerts | `SG.xxxxxxxx...` |
+| `SENDER_EMAIL` | Verified SendGrid sender email address | `nanddevya27@gmail.com` |
+| `ELECTRICITY_MAP_TOKEN` | API Key for Electricity Maps telemetry | `your_token_here` |
+| `NASA_FIRMS_TOKEN` | Token for NASA FIRMS Thermal Hotspots | `your_token_here` |
 
 ---
 
@@ -35,15 +36,17 @@
 2. **Install Dependecies:**
    ```bash
    install -r requirements.txt
-3. **Set Environment Variables (Optional):**
-   ```bash
-  export SENDER_EMAIL="your-email@gmail.com"
-  export SENDER_PASSWORD="your-16-digit-app-password"
-  export SMTP_PORT=465
-  export ELECTRICITY_MAPS_TOKEN="your_token"
-  export NASA_FIRMS_TOKEN="your_token"
-4. **Launch Application:**
+3. **Launch Application:**
    ```bash
    python main.py
    Access the dashboard at http://localhost:8000/
-   
+4. **📡 API Architecture & Endpoints:**
+   **Core UI Routes**
+GET / — Interactive Geospatial Live Telemetry Map
+GET /compare — Dynamic Global Multi-City Climate Comparison Portal
+GET /about — System Architecture & Methodology Documentation
+
+   **REST API Endpoints**
+GET /api/telemetry?city={cityName} — Fetches real-time weather, AQI, UHI, and turbulence metrics for any global city.
+POST /api/subscribe — Subscribes a user email for climate risk alerts via SendGrid API.
+
