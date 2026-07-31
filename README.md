@@ -90,6 +90,7 @@ Configure the following environment variables in your deployment platform (e.g.,
    python main.py
    Access the dashboard at http://localhost:8000/
 4. **📡 API Architecture & Endpoints:**
+```text
    **Core UI Routes**
 GET / — Interactive Geospatial Live Telemetry Map
 GET /compare — Dynamic Global Multi-City Climate Comparison Portal
@@ -98,8 +99,8 @@ GET /about — System Architecture & Methodology Documentation
    **REST API Endpoints**
 GET /api/telemetry?city={cityName} — Fetches real-time weather, AQI, UHI, and turbulence metrics for any global city.
 POST /api/subscribe — Subscribes a user email for climate risk alerts via SendGrid API.
-
-5. **Run Development Server:**
+```
+6. **Run Development Server:**
 ```Bash
 uvicorn main:app --reload --host 0.0.00 --port 8000
 ```
