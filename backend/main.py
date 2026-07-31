@@ -7,6 +7,7 @@ import math
 import os
 import random
 import smtplib
+import socket
 import sys
 import time
 import traceback
@@ -126,52 +127,57 @@ class ScenarioInput(BaseModel):
     renewable_energy_pct: float
 
 # Helper Background Email Sender
-def send_welcome_alert_email(user_email: str):
+import socket
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+import logging
+
+logger = logging.getLogger("EcoPulse-Enterprise")
+
+def send_welcome_alert_email(target_email: str):
+    SENDER_EMAIL = os.getenv("SENDER_EMAIL") or os.getenv("EMAIL_SENDER")
+    SENDER_PASSWORD = os.getenv("SENDER_PASSWORD") or os.getenv("EMAIL_PASSWORD")
+    SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    
     if not SENDER_EMAIL or not SENDER_PASSWORD:
         logger.warning("SMTP Credentials missing in environment variables.")
         return
 
+    # Create HTML Email Content
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "🌍 Welcome to EcoPulse Telemetry Alerts"
+    msg["From"] = f"EcoPulse Alert System <{SENDER_EMAIL}>"
+    msg["To"] = target_email
+
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; background-color: #0b0f17; color: #e6edf3; padding: 20px; border-radius: 10px;">
+        <h2 style="color: #38bdf8;">🌐 EcoPulse Enterprise Risk Telemetry</h2>
+        <p>Thank you for subscribing! You will now receive real-time alerts regarding UHI anomalies, high AQI spikes, and atmospheric turbulence risks.</p>
+        <hr style="border-color: #212636;" />
+        <p style="font-size: 0.8rem; color: #8b949e;">EcoPulse Climate Intelligence Suite • Live Automated System</p>
+    </div>
+    """
+    msg.attach(MIMEText(html_content, "html"))
+
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = "🚨 EcoPulse: Environmental & Satellite Alert Subscription Active"
-        msg["From"] = SENDER_EMAIL
-        msg["To"] = user_email
+        # Force IPv4 resolution to prevent [Errno 101] Network is unreachable on Render
+        ip_address = socket.gethostbyname(SMTP_SERVER)
 
-        html_content = f"""
-        <html>
-            <body style="font-family: Arial, sans-serif; background-color: #060a12; color: #f1f5f9; padding: 20px;">
-                <div style="max-width: 600px; margin: auto; background: #111c35; border: 1px solid #1e2e52; border-radius: 12px; padding: 24px;">
-                    <h2 style="color: #10b981;">EcoPulse Climate Alerts Activated</h2>
-                    <p>You have successfully subscribed to real-time risk telemetry alerts.</p>
-                    <hr style="border-color: #1e2e52; margin: 20px 0;">
-                    <h3 style="color: #38bdf8;">Monitoring Highlights:</h3>
-                    <ul>
-                        <li><b>NASA FIRMS Thermal Hotspots & UHI:</b> Real-time urban heat anomalies.</li>
-                        <li><b>Electricity Maps API:</b> Live grid carbon intensity (gCO2eq/kWh).</li>
-                        <li><b>Atmospheric Turbulence & Wind Shear:</b> Aviation safety & turbulence risk scores.</li>
-                        <li><b>Ocean Thermal Anomalies:</b> Sea surface heatwave alerts.</li>
-                    </ul>
-                </div>
-            </body>
-        </html>
-        """
-        msg.attach(MIMEText(html_content, "html"))
+        # Port 587 with STARTTLS is significantly more reliable on Render containers
+        server = smtplib.SMTP(ip_address, 587, timeout=15)
+        server.ehlo()
+        server.starttls()  # Upgrade connection to secure TLS
+        server.ehlo()
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        server.sendmail(SENDER_EMAIL, target_email, msg.as_string())
+        server.quit()
 
-        # Smart connection based on PORT
-        if SMTP_PORT == 465:
-            with smtplib.SMTP_SSL(SMTP_SERVER, 465, timeout=15) as server:
-                server.login(SENDER_EMAIL, SENDER_PASSWORD)
-                server.sendmail(SENDER_EMAIL, user_email, msg.as_string())
-        else:
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
-                server.starttls()
-                server.login(SENDER_EMAIL, SENDER_PASSWORD)
-                server.sendmail(SENDER_EMAIL, user_email, msg.as_string())
+        logger.info(f"Subscription alert successfully sent to {target_email}")
 
-        logger.info(f"Subscription alert successfully sent to {user_email}")
     except Exception as e:
-        logger.error(f"Failed to send email to {user_email}: {str(e)}")
-
+        logger.error(f"Failed to send email to {target_email}: {e}")
 # =====================================================================
 # 4. REST & TELEMETRY ENDPOINTS
 # =====================================================================
