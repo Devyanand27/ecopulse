@@ -396,7 +396,7 @@ def render_live_map():
     <body>
         {NAVBAR_HTML}
         <div class="container">
-            <div id="sidebar">
+            <div id="sidebar" style="overflow-y: auto; max-height: calc(100vh - 60px);">
                 <div class="card">
                     <div class="card-title">🔍 Global City Telemetry Search</div>
                     <div style="display:flex; gap:6px;">
@@ -448,6 +448,15 @@ def render_live_map():
                     <div class="card-title">📈 7-Day Forecast Matrix</div>
                     <canvas id="forecastChart" height="120"></canvas>
                 </div>
+                <div class="card" style="border: 1px solid #10b981; margin-top: 12px;">
+            <div class="card-title" style="color: #10b981; display: flex; justify-content: space-between; align-items: center;">
+                <span>🤖 AI Model Live Validation</span>
+                <span style="font-size: 10px; background: rgba(16, 185, 129, 0.2); padding: 2px 6px; border-radius: 4px;">XGBoost Engine</span>
+            </div>
+            <div id="ai-metrics-container">
+                <p style="font-size: 12px; color: #94a3b8;">Loading real-time model telemetry...</p>
+            </div>
+        </div>
             </div>
 
             <div id="map"></div>
