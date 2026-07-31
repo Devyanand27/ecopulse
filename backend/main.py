@@ -55,8 +55,8 @@ NASA_FIRMS_TOKEN = os.getenv("NASA_FIRMS_TOKEN", "")
 
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "")
-SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL") or os.getenv("EMAIL_SENDER")
+SENDER_PASSWORD = os.getenv("SENDER_PASSWORD") or os.getenv("EMAIL_PASSWORD")
 
 subscribed_emails = set()
 
