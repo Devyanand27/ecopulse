@@ -6,15 +6,14 @@ import logging
 import math
 import os
 import random
-import smtplib
 import socket
 import sys
 import time
 import traceback
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 import httpx
 import requests
@@ -127,57 +126,33 @@ class ScenarioInput(BaseModel):
     renewable_energy_pct: float
 
 # Helper Background Email Sender
-import socket
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import os
-import logging
-
-logger = logging.getLogger("EcoPulse-Enterprise")
-
 def send_welcome_alert_email(target_email: str):
-    SENDER_EMAIL = os.getenv("SENDER_EMAIL") or os.getenv("EMAIL_SENDER")
-    SENDER_PASSWORD = os.getenv("SENDER_PASSWORD") or os.getenv("EMAIL_PASSWORD")
-    SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    
-    if not SENDER_EMAIL or not SENDER_PASSWORD:
-        logger.warning("SMTP Credentials missing in environment variables.")
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+
+    if not SENDGRID_API_KEY or not SENDER_EMAIL:
+        logger.warning("SendGrid API Key or Sender Email missing in environment variables.")
         return
 
-    # Create HTML Email Content
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = "🌍 Welcome to EcoPulse Telemetry Alerts"
-    msg["From"] = f"EcoPulse Alert System <{SENDER_EMAIL}>"
-    msg["To"] = target_email
-
-    html_content = f"""
-    <div style="font-family: Arial, sans-serif; background-color: #0b0f17; color: #e6edf3; padding: 20px; border-radius: 10px;">
-        <h2 style="color: #38bdf8;">🌐 EcoPulse Enterprise Risk Telemetry</h2>
-        <p>Thank you for subscribing! You will now receive real-time alerts regarding UHI anomalies, high AQI spikes, and atmospheric turbulence risks.</p>
-        <hr style="border-color: #212636;" />
-        <p style="font-size: 0.8rem; color: #8b949e;">EcoPulse Climate Intelligence Suite • Live Automated System</p>
-    </div>
-    """
-    msg.attach(MIMEText(html_content, "html"))
+    message = Mail(
+        from_email=SENDER_EMAIL,
+        to_emails=target_email,
+        subject="🌐 Welcome to EcoPulse Alerts",
+        html_content="""
+        <div style="font-family: Arial, sans-serif; background-color: #0b0f17; color: #e6edf3; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #38bdf8;">🌐 EcoPulse Risk Telemetry</h2>
+            <p>Thank you for subscribing! You will receive real-time updates on UHI, air quality, and climate anomalies.</p>
+        </div>
+        """
+    )
 
     try:
-        # Force IPv4 resolution to prevent [Errno 101] Network is unreachable on Render
-        ip_address = socket.gethostbyname(SMTP_SERVER)
-
-        # Port 587 with STARTTLS is significantly more reliable on Render containers
-        server = smtplib.SMTP(ip_address, 587, timeout=15)
-        server.ehlo()
-        server.starttls()  # Upgrade connection to secure TLS
-        server.ehlo()
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.sendmail(SENDER_EMAIL, target_email, msg.as_string())
-        server.quit()
-
-        logger.info(f"Subscription alert successfully sent to {target_email}")
-
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        logger.info(f"Subscription alert sent to {target_email} (Status Code: {response.status_code})")
     except Exception as e:
-        logger.error(f"Failed to send email to {target_email}: {e}")
+        logger.error(f"Failed to send email to {target_email} via SendGrid: {e}")
+        
 # =====================================================================
 # 4. REST & TELEMETRY ENDPOINTS
 # =====================================================================
