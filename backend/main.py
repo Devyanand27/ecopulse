@@ -47,7 +47,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("EcoPulse-Enterprise")
 
-logger.info("Initializing EcoPulse Global Climate Intelligence Platform Kernel v4.1.0...")
+logger.info("Initializing EcoPulse Global Climate Intelligence Platform Kernel v4.2.0...")
 
 # Load Keys & Secrets from Environment Variables
 ELECTRICITY_MAPS_TOKEN = os.getenv("ELECTRICITY_MAPS_TOKEN", "")
@@ -61,31 +61,12 @@ SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "")
 subscribed_emails = set()
 
 # =====================================================================
-# 2. OPTIONAL HEAVY MACHINE LEARNING IMPORTS
-# =====================================================================
-HAS_NUMPY = False
-HAS_SKLEARN = False
-
-try:
-    import numpy as np
-    HAS_NUMPY = True
-except ImportError:
-    pass
-
-try:
-    from sklearn.ensemble import RandomForestRegressor
-    from sklearn.preprocessing import StandardScaler
-    HAS_SKLEARN = True
-except ImportError:
-    pass
-
-# =====================================================================
-# 3. FASTAPI APPLICATION DEFINITION
+# 2. FASTAPI APPLICATION DEFINITION
 # =====================================================================
 app = FastAPI(
     title="EcoPulse Global Climate Intelligence Platform API",
-    description="Enterprise Climate Platform with Real-Time Satellite Telemetry, Compare Portal, Turbulence Risk, UHI & AI Engine.",
-    version="4.1.0",
+    description="Enterprise Climate Platform with Ocean Heat, Urban Heat (UHI), Carbon Grid, Turbulence & Satellite Telemetry.",
+    version="4.2.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -100,18 +81,18 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # =====================================================================
-# 4. MASTER DATA & CITY REGISTRY
+# 3. MASTER DATA & CITY REGISTRY WITH INTEGRATED METRICS
 # =====================================================================
 GLOBAL_CITIES_REGISTRY: Dict[str, Dict[str, Any]] = {
-    "karachi": {"name": "Karachi", "lat": 24.8607, "lon": 67.0011, "country": "Pakistan", "pop": "16M", "pollen_index": "High (Tree: 68, Grass: 42)", "temp": 33.5, "aqi": 142, "carbon_gco2": 395},
-    "lahore": {"name": "Lahore", "lat": 31.5204, "lon": 74.3587, "country": "Pakistan", "pop": "13M", "pollen_index": "Critical (Tree: 110, Grass: 85, Weed: 95)", "temp": 35.2, "aqi": 185, "carbon_gco2": 410},
-    "islamabad": {"name": "Islamabad", "lat": 33.6844, "lon": 73.0479, "country": "Pakistan", "pop": "1.2M", "pollen_index": "Severe (Paper Mulberry Tree Pollen: 24000+ count/m³)", "temp": 29.0, "aqi": 88, "carbon_gco2": 310},
-    "london": {"name": "London", "lat": 51.5074, "lon": -0.1278, "country": "United Kingdom", "pop": "8.9M", "pollen_index": "Moderate (Grass: 24)", "temp": 19.4, "aqi": 42, "carbon_gco2": 145},
-    "new york": {"name": "New York", "lat": 40.7128, "lon": -74.0060, "country": "United States", "pop": "8.4M", "pollen_index": "Low (Tree: 12)", "temp": 24.1, "aqi": 55, "carbon_gco2": 360},
-    "tokyo": {"name": "Tokyo", "lat": 35.6762, "lon": 139.6503, "country": "Japan", "pop": "13.9M", "pollen_index": "Moderate (Cedar: 35)", "temp": 27.8, "aqi": 38, "carbon_gco2": 280},
-    "sydney": {"name": "Sydney", "lat": -33.8688, "lon": 151.2093, "country": "Australia", "pop": "5.3M", "pollen_index": "Low (Grass: 8)", "temp": 18.2, "aqi": 25, "carbon_gco2": 290},
-    "dubai": {"name": "Dubai", "lat": 25.2048, "lon": 55.2708, "country": "UAE", "pop": "3.3M", "pollen_index": "Low (Dust/Pollen: 15)", "temp": 41.0, "aqi": 115, "carbon_gco2": 510},
-    "mumbai": {"name": "Mumbai", "lat": 19.0760, "lon": 72.8777, "country": "India", "pop": "20M", "pollen_index": "High (Fungal spores: 62)", "temp": 31.4, "aqi": 130, "carbon_gco2": 580}
+    "karachi": {"name": "Karachi", "lat": 24.8607, "lon": 67.0011, "country": "Pakistan", "pop": "16M", "pollen_index": "High (Tree: 68, Grass: 42)", "temp": 33.5, "aqi": 142, "carbon_gco2": 395, "uhi_index": 2.8, "turbulence_score": 42, "ocean_heat": 30.1},
+    "lahore": {"name": "Lahore", "lat": 31.5204, "lon": 74.3587, "country": "Pakistan", "pop": "13M", "pollen_index": "Critical (Tree: 110, Grass: 85, Weed: 95)", "temp": 35.2, "aqi": 185, "carbon_gco2": 410, "uhi_index": 3.6, "turbulence_score": 28, "ocean_heat": 27.5},
+    "islamabad": {"name": "Islamabad", "lat": 33.6844, "lon": 73.0479, "country": "Pakistan", "pop": "1.2M", "pollen_index": "Severe (Paper Mulberry: 24000+ count/m³)", "temp": 29.0, "aqi": 88, "carbon_gco2": 310, "uhi_index": 1.4, "turbulence_score": 55, "ocean_heat": 25.0},
+    "london": {"name": "London", "lat": 51.5074, "lon": -0.1278, "country": "United Kingdom", "pop": "8.9M", "pollen_index": "Moderate (Grass: 24)", "temp": 19.4, "aqi": 42, "carbon_gco2": 145, "uhi_index": 1.9, "turbulence_score": 38, "ocean_heat": 16.2},
+    "new york": {"name": "New York", "lat": 40.7128, "lon": -74.0060, "country": "United States", "pop": "8.4M", "pollen_index": "Low (Tree: 12)", "temp": 24.1, "aqi": 55, "carbon_gco2": 360, "uhi_index": 3.1, "turbulence_score": 62, "ocean_heat": 21.8},
+    "tokyo": {"name": "Tokyo", "lat": 35.6762, "lon": 139.6503, "country": "Japan", "pop": "13.9M", "pollen_index": "Moderate (Cedar: 35)", "temp": 27.8, "aqi": 38, "carbon_gco2": 280, "uhi_index": 2.9, "turbulence_score": 45, "ocean_heat": 24.1},
+    "sydney": {"name": "Sydney", "lat": -33.8688, "lon": 151.2093, "country": "Australia", "pop": "5.3M", "pollen_index": "Low (Grass: 8)", "temp": 18.2, "aqi": 25, "carbon_gco2": 290, "uhi_index": 1.2, "turbulence_score": 51, "ocean_heat": 19.5},
+    "dubai": {"name": "Dubai", "lat": 25.2048, "lon": 55.2708, "country": "UAE", "pop": "3.3M", "pollen_index": "Low (Dust/Pollen: 15)", "temp": 41.0, "aqi": 115, "carbon_gco2": 510, "uhi_index": 4.1, "turbulence_score": 35, "ocean_heat": 33.2},
+    "mumbai": {"name": "Mumbai", "lat": 19.0760, "lon": 72.8777, "country": "India", "pop": "20M", "pollen_index": "High (Fungal spores: 62)", "temp": 31.4, "aqi": 130, "carbon_gco2": 580, "uhi_index": 3.4, "turbulence_score": 48, "ocean_heat": 29.8}
 }
 
 GLOBAL_WILDFIRES_DB = [
@@ -125,6 +106,14 @@ GLOBAL_WILDFIRES_DB = [
     {"id": "fire_gr_01", "location": "Attica Coast, Greece", "lat": 38.0494, "lon": 23.8324, "frp": "94.6 MW"},
     {"id": "fire_id_01", "location": "Sumatra Peatlands, Indonesia", "lat": -0.5897, "lon": 101.3431, "frp": "260.1 MW"},
     {"id": "fire_es_01", "location": "Andalusia Hills, Spain", "lat": 37.3891, "lon": -5.9845, "frp": "77.3 MW"}
+]
+
+# Ocean Thermal Baseline Zones
+OCEAN_HEAT_ZONES = [
+    {"name": "Arabian Sea Thermal Zone", "lat": 20.0, "lon": 65.0, "temp_anomaly": "+2.4 °C", "risk": "High Coral Bleaching"},
+    {"name": "Indian Ocean Basin", "lat": 5.0, "lon": 75.0, "temp_anomaly": "+1.8 °C", "risk": "Moderate Thermal Stress"},
+    {"name": "Gulf of Mexico Hotspot", "lat": 25.0, "lon": -90.0, "temp_anomaly": "+3.1 °C", "risk": "Severe Storm Fueling"},
+    {"name": "Mediterranean Sea Basin", "lat": 36.0, "lon": 18.0, "temp_anomaly": "+2.1 °C", "risk": "Marine Heatwave Level 2"}
 ]
 
 class ChatMessage(BaseModel):
@@ -159,8 +148,8 @@ def send_welcome_alert_email(user_email: str):
                     <ul>
                         <li><b>NASA FIRMS Thermal Hotspots & UHI:</b> Real-time urban heat anomalies.</li>
                         <li><b>Electricity Maps API:</b> Live grid carbon intensity (gCO2eq/kWh).</li>
-                        <li><b>Atmospheric Wind Shear:</b> Aviation & turbulence risk scores.</li>
-                        <li><b>Pollen & Air Quality Warnings:</b> Botanical risk alerts.</li>
+                        <li><b>Atmospheric Turbulence & Wind Shear:</b> Aviation safety & turbulence risk scores.</li>
+                        <li><b>Ocean Thermal Anomalies:</b> Sea surface heatwave alerts.</li>
                     </ul>
                 </div>
             </body>
@@ -178,7 +167,7 @@ def send_welcome_alert_email(user_email: str):
         logger.error(f"Failed to send email to {user_email}: {str(e)}")
 
 # =====================================================================
-# 5. REST & TELEMETRY ENDPOINTS
+# 4. REST & TELEMETRY ENDPOINTS
 # =====================================================================
 @app.get("/api/v1/wildfires", tags=["Layers"])
 def get_wildfires():
@@ -188,10 +177,12 @@ def get_wildfires():
 def simulate_scenario(data: ScenarioInput):
     temp_anomaly = round((data.urban_density * 0.045) - (data.vegetation_cover * 0.035), 2)
     carbon_reduction = round(data.renewable_energy_pct * 2.5, 1)
+    uhi_reduction = round(data.vegetation_cover * 0.04, 2)
     sustainability_index = max(0, min(100, int(70 - temp_anomaly * 10 + data.renewable_energy_pct * 0.3)))
     return {
         "temperature_anomaly_c": temp_anomaly,
         "carbon_intensity_reduction_pct": carbon_reduction,
+        "uhi_mitigation_c": uhi_reduction,
         "sustainability_score": sustainability_index
     }
 
@@ -208,7 +199,6 @@ async def subscribe_alerts(background_tasks: BackgroundTasks, email: str = Form(
 async def get_city_telemetry(city: str = "Lahore"):
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
-            # 1. Geocoding
             geo_res = await client.get(f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=en&format=json")
             geo_data = geo_res.json()
 
@@ -218,21 +208,18 @@ async def get_city_telemetry(city: str = "Lahore"):
             loc = geo_data["results"][0]
             lat, lon = loc["latitude"], loc["longitude"]
 
-            # 2. Weather & Wind Telemetry
             weather_res = await client.get(
                 f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
                 f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,surface_pressure"
             )
             w_data = weather_res.json().get("current", {})
 
-            # 3. Air Quality
             air_res = await client.get(
                 f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}"
                 f"&current=pm10,pm2_5,european_aqi"
             )
             a_data = air_res.json().get("current", {})
 
-            # 4. REAL-TIME CARBON GRID DATA (Electricity Maps API Integration)
             grid_carbon_value = None
             if ELECTRICITY_MAPS_TOKEN:
                 try:
@@ -248,7 +235,6 @@ async def get_city_telemetry(city: str = "Lahore"):
             if grid_carbon_value is None:
                 grid_carbon_value = int(130 + (abs(lat) * 3.1) + (lon % 35))
 
-            # 5. REAL-TIME THERMAL ANOMALIES & UHI (NASA FIRMS API Integration)
             thermal_hotspots = 0
             if NASA_FIRMS_TOKEN:
                 try:
@@ -265,10 +251,10 @@ async def get_city_telemetry(city: str = "Lahore"):
             wind_speed = w_data.get("wind_speed_10m", 10.0)
             wind_gusts = w_data.get("wind_gusts_10m", 15.0)
 
-            # Urban Heat Island (UHI) Delta Index (°C)
+            # Urban Heat Island (UHI) Metric (°C)
             uhi_intensity = round(1.2 + (temp * 0.07) + (thermal_hotspots * 0.15), 2)
 
-            # Atmospheric Turbulence Risk Scoring
+            # Turbulence Risk Calculation
             gust_delta = max(0, wind_gusts - wind_speed)
             turbulence_score = min(100, int((wind_speed * 1.8) + (gust_delta * 3.5)))
             
@@ -278,7 +264,7 @@ async def get_city_telemetry(city: str = "Lahore"):
             elif turbulence_score > 35:
                 turbulence_level = "Moderate Turbulence"
 
-            # Ocean Thermal Heat Delta (°C)
+            # Ocean Thermal Heat Index (°C)
             ocean_heat_temp = round(temp - 2.2, 1)
 
             return {
@@ -305,49 +291,71 @@ async def get_city_telemetry(city: str = "Lahore"):
 def smart_ai_chatbot(chat: ChatMessage):
     msg = chat.message.lower().strip()
     
-    # Precise match for city pollen queries
-    if "pollen" in msg:
-        found_city = None
+    # 1. Urban Heat / UHI Query
+    if "uhi" in msg or "urban heat" in msg:
         for c in GLOBAL_CITIES_REGISTRY:
             if c in msg:
-                found_city = GLOBAL_CITIES_REGISTRY[c]
-                break
-        if found_city:
-            return {
-                "reply": f"🌿 **Pollen Metrics for {found_city['name']}, {found_city['country']}**:\n"
-                         f"• Risk Level: {found_city['pollen_index']}\n"
-                         f"• Primary Allergen Focus: Airborne pollen and fungal particles.\n"
-                         f"• Advisory: Sensitive individuals should consider wearing masks outdoors."
-            }
-        return {
-            "reply": "🌿 **Pollen Layer Status**: High pollen concentrations detected across South Asia (Islamabad/Lahore sector). Specific cities available: Lahore, Islamabad, Karachi, London, Tokyo, New York."
-        }
+                city = GLOBAL_CITIES_REGISTRY[c]
+                return {"reply": f"🏙️ **Urban Heat Island (UHI) Status for {city['name']}**:\n• Surface Heat Delta: +{city['uhi_index']}°C above rural baselines.\n• Driver: High asphalt density & concrete heat trap.\n• Recommendation: Increase urban canopy and cool roofing."}
+        return {"reply": "🏙️ **Urban Heat Island (UHI) Layer**: UHI effect causes city centers to be 1.5°C to 4.5°C warmer than rural surroundings due to pavement density and reduced vegetation."}
 
-    # Temperature / Weather query
+    # 2. Turbulence / Wind Shear Query
+    if "turbulence" in msg or "wind shear" in msg:
+        for c in GLOBAL_CITIES_REGISTRY:
+            if c in msg:
+                city = GLOBAL_CITIES_REGISTRY[c]
+                return {"reply": f"💨 **Turbulence Risk Score for {city['name']}**:\n• Atmospheric Index: {city['turbulence_score']}/100\n• Status: {'High Risk (Wind Shear)' if city['turbulence_score'] > 50 else 'Moderate Wind Conditions'}\n• Impact: Low-altitude aviation stability & rooftop structures."}
+        return {"reply": "💨 **Atmospheric Turbulence Layer**: Evaluates live boundary-layer wind speed and gust differentials to compute low-altitude aviation and wind hazard risks."}
+
+    # 3. Carbon Grid Query
+    if "carbon" in msg or "carbon grid" in msg or "grid" in msg:
+        for c in GLOBAL_CITIES_REGISTRY:
+            if c in msg:
+                city = GLOBAL_CITIES_REGISTRY[c]
+                return {"reply": f"⚡ **Carbon Grid Intensity for {city['name']}**:\n• Emission Rate: {city['carbon_gco2']} gCO2eq/kWh\n• Data Source: Electricity Maps API Telemetry.\n• Clean Energy Offset Target: Need +30% solar/wind integration to hit climate baseline."}
+        return {"reply": "⚡ **Carbon Grid Layer**: Live tracking of regional electrical grid emission intensities worldwide."}
+
+    # 4. Ocean Heat Query
+    if "ocean" in msg or "ocean heat" in msg or "marine" in msg:
+        for c in GLOBAL_CITIES_REGISTRY:
+            if c in msg:
+                city = GLOBAL_CITIES_REGISTRY[c]
+                return {"reply": f"🌊 **Coastal Ocean Heat Index for {city['name']} Sector**:\n• Sea Surface Temperature: {city['ocean_heat']}°C\n• Thermal Anomaly: +2.1°C\n• Coral Bleaching Risk: Elevated."}
+        return {"reply": "🌊 **Ocean Heat Layer**: Tracks sea surface thermal anomalies and marine heatwave risk zones globally."}
+
+    # 5. Pollen Query
+    if "pollen" in msg:
+        for c in GLOBAL_CITIES_REGISTRY:
+            if c in msg:
+                city = GLOBAL_CITIES_REGISTRY[c]
+                return {"reply": f"🌿 **Pollen Metrics for {city['name']}**:\n• Risk Level: {city['pollen_index']}\n• Focus: Airborne botanical allergens.\n• Recommendation: Sensitive individuals should wear masks outdoors."}
+        return {"reply": "🌿 **Pollen Layer**: Active botanical allergen monitoring across major global cities."}
+
+    # 6. Temperature / Weather query
     if "temp" in msg or "weather" in msg:
         for c in GLOBAL_CITIES_REGISTRY:
             if c in msg:
                 city = GLOBAL_CITIES_REGISTRY[c]
-                return {"reply": f"🌡️ **Current Weather for {city['name']}**: Temp is {city['temp']}°C, Air Quality Index (AQI) is {city['aqi']}."}
+                return {"reply": f"🌡️ **Current Weather for {city['name']}**: Temp: {city['temp']}°C | AQI: {city['aqi']} | UHI Delta: +{city['uhi_index']}°C."}
         return {"reply": "🌡️ Global average surface thermal anomaly is currently at +2.6°C above pre-industrial baselines."}
 
-    # Wildfire query
+    # 7. Wildfire query
     if "fire" in msg or "wildfire" in msg:
-        return {"reply": f"🔥 **Wildfire Layer**: EcoPulse is actively tracking {len(GLOBAL_WILDFIRES_DB)} major satellite hotspots including Margalla Hills (Pakistan), Western Ghats (India), Amazon Basin (Brazil), and California (USA)."}
+        return {"reply": f"🔥 **Wildfire Layer**: EcoPulse is actively tracking {len(GLOBAL_WILDFIRES_DB)} major satellite hotspots including Margalla Hills, Amazon Basin, and California."}
 
     return {
-        "reply": f"🤖 **EcoPulse AI**: I can provide real-time updates on Pollen levels, Wildfires, Urban Heat Islands (UHI), Atmospheric Turbulence, Ocean Heat, and Air Quality for global cities. Try asking: 'What is the pollen rate of Lahore?' or 'Show wildfires'."
+        "reply": f"🤖 **EcoPulse AI**: Ask me about **Urban Heat (UHI)**, **Atmospheric Turbulence**, **Carbon Grid Intensity**, **Ocean Heat**, **Pollen**, or **Wildfires** for any city!"
     }
 
 # NAVBAR SHARED HTML
 NAVBAR_HTML = """
 <nav style="background:#111622; border-bottom:1px solid #212636; padding:12px 24px; display:flex; justify-content:space-between; align-items:center;">
     <div style="font-size:1.3rem; font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:8px;">
-        🌐 EcoPulse <span style="font-size:0.75rem; color:#8b949e; background:#1c2333; padding:2px 8px; border-radius:12px;">v4.1 Enterprise</span>
+        🌐 EcoPulse <span style="font-size:0.75rem; color:#8b949e; background:#1c2333; padding:2px 8px; border-radius:12px;">v4.2 Enterprise</span>
     </div>
     <div style="display:flex; gap:16px;">
         <a href="/" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">🗺️ Live Map</a>
-        <a href="compare.html" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">📊 Cities Compare</a>
+        <a href="/compare" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">📊 Cities Compare</a>
         <a href="/about" style="color:#e6edf3; text-decoration:none; font-size:0.9rem; font-weight:600;">📖 Story & Learn</a>
         <a href="/docs" target="_blank" style="color:#38bdf8; text-decoration:none; font-size:0.9rem; font-weight:600;">⚡ API Portal</a>
     </div>
@@ -355,7 +363,7 @@ NAVBAR_HTML = """
 """
 
 # =====================================================================
-# 6. PAGE 1: LIVE MAP DASHBOARD (`/`)
+# 5. PAGE 1: LIVE MAP DASHBOARD (`/`, `/dashboard`, `/dashboard.html`)
 # =====================================================================
 @app.get("/", response_class=HTMLResponse, tags=["UI Portal"])
 @app.get("/dashboard", response_class=HTMLResponse, tags=["UI Portal"])
@@ -393,9 +401,9 @@ def render_live_map():
             .chat-input-area input {{ flex:1; background:#0b0f17; border:none; color:white; padding:8px 10px; font-size:0.75rem; outline:none; }}
             .chat-input-area button {{ background:#0284c7; border:none; color:white; padding:8px 14px; cursor:pointer; font-size:0.75rem; font-weight:600; }}
             
-            /* Clean Custom Map Marker Pins */
             .custom-city-pin {{ background:#38bdf8; border:2px solid white; border-radius:50%; box-shadow:0 0 10px #38bdf8; }}
             .custom-fire-pin {{ background:#ef4444; border:2px solid #fef08a; border-radius:50%; box-shadow:0 0 12px #ef4444; text-align:center; font-size:10px; line-height:14px; }}
+            .custom-ocean-pin {{ background:#06b6d4; border:2px solid white; border-radius:50%; box-shadow:0 0 10px #06b6d4; text-align:center; font-size:10px; line-height:14px; }}
         </style>
     </head>
     <body>
@@ -403,7 +411,7 @@ def render_live_map():
         <div class="container">
             <div id="sidebar">
                 <div class="card">
-                    <div class="card-title">🔍 Global Search</div>
+                    <div class="card-title">🔍 Global City Telemetry Search</div>
                     <div style="display:flex; gap:6px;">
                         <input type="text" id="citySearch" value="Lahore" style="flex:1; background:#0b0f17; border:1px solid #212636; color:#fff; padding:6px 10px; border-radius:6px; font-size:0.8rem;">
                         <button onclick="searchCity()" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem;">Go</button>
@@ -414,15 +422,14 @@ def render_live_map():
                     <div class="card-title">🗺️ Active Visual Layers</div>
                     <div class="layer-grid">
                         <button class="layer-btn active" onclick="toggleLayer('cities', this)">Cities</button>
-                        <button class="layer-btn active" onclick="toggleLayer('fires', this)">10 Wildfires</button>
+                        <button class="layer-btn active" onclick="toggleLayer('fires', this)">Wildfires</button>
                         <button class="layer-btn active" onclick="toggleLayer('pollen', this)">Pollen Risk</button>
-                        <button class="layer-btn" onclick="toggleLayer('marine', this)">Ocean Heat</button>
-                        <button class="layer-btn" onclick="toggleLayer('uhi', this)">Urban Heat</button>
-                        <button class="layer-btn" onclick="toggleLayer('carbon', this)">Carbon Grid</button>
+                        <button class="layer-btn active" onclick="toggleLayer('ocean', this)">Ocean Heat</button>
+                        <button class="layer-btn active" onclick="toggleLayer('uhi', this)">Urban Heat (UHI)</button>
+                        <button class="layer-btn active" onclick="toggleLayer('turb', this)">Turbulence</button>
                     </div>
                 </div>
 
-                <!-- EMAIL SUBSCRIPTION CARD -->
                 <div class="card" style="border-color: #10b981;">
                     <div class="card-title" style="color:#10b981;">🚨 Subscribe to Risk Alerts</div>
                     <p style="font-size:0.72rem; color:#8b949e; margin-bottom:8px;">Receive automated emails when UHI, Turbulence, or Air Quality exceeds safety thresholds.</p>
@@ -434,7 +441,7 @@ def render_live_map():
                 </div>
 
                 <div class="card">
-                    <div class="card-title">📊 Scenario Simulator</div>
+                    <div class="card-title">📊 Urban Heat & Carbon Simulator</div>
                     <div class="slider-group">
                         <label>Urban Density <span id="lblD">50</span>%</label>
                         <input type="range" id="sldD" min="0" max="100" value="50" oninput="document.getElementById('lblD').innerText=this.value; runSim()">
@@ -447,7 +454,7 @@ def render_live_map():
                         <label>Renewables Share <span id="lblR">40</span>%</label>
                         <input type="range" id="sldR" min="0" max="100" value="40" oninput="document.getElementById('lblR').innerText=this.value; runSim()">
                     </div>
-                    <div id="simRes" style="font-size:0.75rem; color:#38bdf8; margin-top:4px;">Anomaly: +1.2°C | Offset: -100.0%</div>
+                    <div id="simRes" style="font-size:0.75rem; color:#38bdf8; margin-top:4px;">Anomaly: +1.2°C | Offset: -100.0% | UHI Mitigation: -1.2°C</div>
                 </div>
 
                 <div class="card">
@@ -459,48 +466,65 @@ def render_live_map():
             <div id="map"></div>
         </div>
 
-        <!-- AI Assistant Floating Widget -->
         <div class="chat-widget">
             <div class="chat-header">🤖 EcoPulse Intelligent AI Assistant</div>
             <div class="chat-messages" id="chatBox">
-                <div class="chat-msg-bot">Hello! Ask me about Pollen levels (e.g. Lahore, Islamabad), Weather, UHI, Turbulence, or Wildfires worldwide.</div>
+                <div class="chat-msg-bot">Hello! Ask me about Ocean Heat, Urban Heat (UHI), Turbulence, Carbon Grid, Pollen, or Wildfires worldwide.</div>
             </div>
             <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Ask e.g. pollen rate of lahore..." onkeypress="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chatInput" placeholder="Ask e.g. UHI rate of Lahore or Turbulence of Karachi..." onkeypress="if(event.key==='Enter') sendChat()">
                 <button onclick="sendChat()">Send</button>
             </div>
         </div>
 
         <script>
-            // Initialize Leaflet Map
             const map = L.map('map').setView([24.8607, 67.0011], 5);
             L.tileLayer('https://{{s}}.basemaps.cartocdn.com/dark_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{ maxZoom: 19 }}).addTo(map);
 
             const cityGroup = L.layerGroup().addTo(map);
             const fireGroup = L.layerGroup().addTo(map);
             const pollenGroup = L.layerGroup().addTo(map);
+            const oceanGroup = L.layerGroup().addTo(map);
+            const uhiGroup = L.layerGroup().addTo(map);
+            const turbGroup = L.layerGroup().addTo(map);
 
             const citiesData = {json.dumps(GLOBAL_CITIES_REGISTRY)};
             const firesData = {json.dumps(GLOBAL_WILDFIRES_DB)};
+            const oceanData = {json.dumps(OCEAN_HEAT_ZONES)};
 
-            // Render Custom Clean HTML City Markers
+            // Render City Markers, UHI Layers, Turbulence and Pollen
             Object.values(citiesData).forEach(c => {{
                 const markerHtml = `<div class="custom-city-pin" style="width:14px; height:14px;"></div>`;
                 const customIcon = L.divIcon({{ html: markerHtml, className: '', iconSize: [14, 14] }});
+                
                 L.marker([c.lat, c.lon], {{ icon: customIcon }})
-                    .bindPopup(`<b>${{c.name}}, ${{c.country}}</b><br>Temp: ${{c.temp}}°C<br>AQI: ${{c.aqi}}<br>Pollen: ${{c.pollen_index}}`)
+                    .bindPopup(`
+                        <b>${{c.name}}, ${{c.country}}</b><br>
+                        🌡️ Temp: ${{c.temp}}°C<br>
+                        🏙️ UHI Delta: +${{c.uhi_index}}°C<br>
+                        ⚡ Carbon Grid: ${{c.carbon_gco2}} gCO2/kWh<br>
+                        💨 Turbulence Risk: ${{c.turbulence_score}}/100<br>
+                        🌿 Pollen: ${{c.pollen_index}}
+                    `)
                     .addTo(cityGroup);
 
-                // Add Pollen circles
+                // Pollen Zone Layer
                 L.circle([c.lat, c.lon], {{
-                    color: '#eab308',
-                    fillColor: '#eab308',
-                    fillOpacity: 0.15,
-                    radius: 80000
+                    color: '#eab308', fillColor: '#eab308', fillOpacity: 0.12, radius: 70000
                 }}).bindPopup(`<b>${{c.name}} Pollen Zone</b><br>${{c.pollen_index}}`).addTo(pollenGroup);
+
+                // Urban Heat Island (UHI) Visual Zone
+                L.circle([c.lat, c.lon], {{
+                    color: '#f97316', fillColor: '#ea580c', fillOpacity: 0.25, radius: 40000
+                }}).bindPopup(`<b>${{c.name}} Urban Heat Island (UHI) Zone</b><br>Heat Anomaly: +${{c.uhi_index}}°C`).addTo(uhiGroup);
+
+                // Turbulence / Wind Shear Zone
+                L.circle([c.lat, c.lon], {{
+                    color: '#a855f7', fillColor: '#a855f7', fillOpacity: 0.15, radius: 55000
+                }}).bindPopup(`<b>${{c.name}} Turbulence Vector Zone</b><br>Risk Score: ${{c.turbulence_score}}/100`).addTo(turbGroup);
             }});
 
-            // Render ALL 10 Wildfire Markers around the Globe
+            // Render Wildfire Hotspots
             firesData.forEach(f => {{
                 const fireHtml = `<div class="custom-fire-pin" style="width:18px; height:18px;">🔥</div>`;
                 const icon = L.divIcon({{ html: fireHtml, className: '', iconSize: [18, 18] }});
@@ -509,11 +533,27 @@ def render_live_map():
                     .addTo(fireGroup);
             }});
 
+            // Render Ocean Heat Anomalies
+            oceanData.forEach(o => {{
+                const oceanHtml = `<div class="custom-ocean-pin" style="width:18px; height:18px;">🌊</div>`;
+                const icon = L.divIcon({{ html: oceanHtml, className: '', iconSize: [18, 18] }});
+                L.marker([o.lat, o.lon], {{ icon: icon }})
+                    .bindPopup(`<b>${{o.name}}</b><br>Thermal Anomaly: ${{o.temp_anomaly}}<br>Risk Level: ${{o.risk}}`)
+                    .addTo(oceanGroup);
+
+                L.circle([o.lat, o.lon], {{
+                    color: '#06b6d4', fillColor: '#0891b2', fillOpacity: 0.2, radius: 150000
+                }}).addTo(oceanGroup);
+            }});
+
             function toggleLayer(type, btn) {{
                 btn.classList.toggle('active');
                 if(type === 'cities') {{ map.hasLayer(cityGroup) ? map.removeLayer(cityGroup) : map.addLayer(cityGroup); }}
                 if(type === 'fires') {{ map.hasLayer(fireGroup) ? map.removeLayer(fireGroup) : map.addLayer(fireGroup); }}
                 if(type === 'pollen') {{ map.hasLayer(pollenGroup) ? map.removeLayer(pollenGroup) : map.addLayer(pollenGroup); }}
+                if(type === 'ocean') {{ map.hasLayer(oceanGroup) ? map.removeLayer(oceanGroup) : map.addLayer(oceanGroup); }}
+                if(type === 'uhi') {{ map.hasLayer(uhiGroup) ? map.removeLayer(uhiGroup) : map.addLayer(uhiGroup); }}
+                if(type === 'turb') {{ map.hasLayer(turbGroup) ? map.removeLayer(turbGroup) : map.addLayer(turbGroup); }}
             }}
 
             async function searchCity() {{
@@ -528,7 +568,7 @@ def render_live_map():
                             map.flyTo([data.coordinates.lat, data.coordinates.lon], 9);
                         }}
                     }} catch(e) {{
-                        alert('City location found on map dataset.');
+                        alert('City search complete.');
                     }}
                 }}
             }}
@@ -543,7 +583,7 @@ def render_live_map():
                     body: JSON.stringify({{ urban_density: parseFloat(u), vegetation_cover: parseFloat(v), renewable_energy_pct: parseFloat(r) }})
                 }});
                 const data = await res.json();
-                document.getElementById('simRes').innerText = `Anomaly: +${{data.temperature_anomaly_c}}°C | Carbon Offset: -${{data.carbon_intensity_reduction_pct}}%`;
+                document.getElementById('simRes').innerText = `Anomaly: +${{data.temperature_anomaly_c}}°C | Carbon Offset: -${{data.carbon_intensity_reduction_pct}}% | UHI Cooling: -${{data.uhi_mitigation_c}}°C`;
             }}
 
             async function sendChat() {{
@@ -566,7 +606,6 @@ def render_live_map():
                 box.scrollTop = box.scrollHeight;
             }}
 
-            // Email Form Submission Handling
             document.getElementById('subscribeForm').addEventListener('submit', async (e) => {{
                 e.preventDefault();
                 const email = document.getElementById('subscriberEmail').value;
@@ -589,7 +628,6 @@ def render_live_map():
                 }}
             }});
 
-            // Chart Initialization
             const ctx = document.getElementById('forecastChart').getContext('2d');
             new Chart(ctx, {{
                 type: 'line',
@@ -608,15 +646,174 @@ def render_live_map():
     """
 
 # =====================================================================
-# 7. PAGE 2: CITIES COMPARISON PAGE (/compare & /compare.html)
+# 6. PAGE 2: CITIES COMPARISON PAGE (/compare & /compare.html)
 # =====================================================================
-@app.get("/compare", response_class=FileResponse, tags=["UI Portal"])
-@app.get("/compare.html", response_class=FileResponse, tags=["UI Portal"])
+@app.get("/compare", response_class=HTMLResponse, tags=["UI Portal"])
+@app.get("/compare.html", response_class=HTMLResponse, tags=["UI Portal"])
 def render_cities_compare_page():
-    return FileResponse("compare.html")
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>EcoPulse - City Climate Comparison Matrix</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            * {{ margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
+            body {{ background:#0b0f17; color:#e6edf3; display:flex; flex-direction:column; min-height:100vh; }}
+            .container {{ padding:24px; max-width:1200px; margin:0 auto; width:100%; }}
+            h1 {{ color:#38bdf8; font-size:1.8rem; margin-bottom:20px; }}
+            .selector-bar {{ display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }}
+            .select-group {{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:200px; }}
+            label {{ font-size:0.85rem; color:#8b949e; font-weight:600; }}
+            select {{ background:#111622; border:1px solid #212636; color:#fff; padding:10px; border-radius:8px; font-size:0.9rem; outline:none; }}
+            .compare-grid {{ display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px; margin-bottom:30px; }}
+            .city-card {{ background:#111622; border:1px solid #212636; border-radius:12px; padding:20px; }}
+            .city-name {{ font-size:1.4rem; font-weight:700; color:#38bdf8; margin-bottom:4px; }}
+            .country-name {{ font-size:0.85rem; color:#8b949e; margin-bottom:16px; }}
+            .metric-row {{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1c2333; font-size:0.9rem; }}
+            .metric-label {{ color:#8b949e; }}
+            .metric-value {{ font-weight:600; color:#f1f5f9; }}
+            .chart-card {{ background:#111622; border:1px solid #212636; border-radius:12px; padding:20px; }}
+        </style>
+    </head>
+    <body>
+        {NAVBAR_HTML}
+        <div class="container">
+            <h1>📊 Global Cities Climate Matrix Comparison</h1>
+            
+            <div class="selector-bar">
+                <div class="select-group">
+                    <label>Select Primary City</label>
+                    <select id="city1Select" onchange="updateComparison()">
+                        <option value="lahore" selected>Lahore (Pakistan)</option>
+                        <option value="karachi">Karachi (Pakistan)</option>
+                        <option value="islamabad">Islamabad (Pakistan)</option>
+                        <option value="dubai">Dubai (UAE)</option>
+                        <option value="london">London (UK)</option>
+                        <option value="new york">New York (USA)</option>
+                    </select>
+                </div>
+                <div class="select-group">
+                    <label>Select Comparison City</label>
+                    <select id="city2Select" onchange="updateComparison()">
+                        <option value="karachi">Karachi (Pakistan)</option>
+                        <option value="lahore">Lahore (Pakistan)</option>
+                        <option value="islamabad" selected>Islamabad (Pakistan)</option>
+                        <option value="dubai">Dubai (UAE)</option>
+                        <option value="london">London (UK)</option>
+                        <option value="new york">New York (USA)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="compare-grid">
+                <div class="city-card" id="card1"></div>
+                <div class="city-card" id="card2"></div>
+            </div>
+
+            <div class="chart-card">
+                <h3 style="color:#38bdf8; margin-bottom:16px;">Multi-Metric Visual Comparison (UHI, Ocean Heat, Carbon, AQI, Turbulence)</h3>
+                <canvas id="compareChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <script>
+            const citiesData = {json.dumps(GLOBAL_CITIES_REGISTRY)};
+            let compareChart = null;
+
+            function renderCityCard(cityKey) {{
+                const c = citiesData[cityKey];
+                if(!c) return '';
+                return `
+                    <div class="city-name">${{c.name}}</div>
+                    <div class="country-name">📍 ${{c.country}} | Pop: ${{c.pop}}</div>
+                    <div class="metric-row">
+                        <span class="metric-label">Temperature</span>
+                        <span class="metric-value" style="color:#f87171;">${{c.temp}} °C</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Urban Heat Island (UHI) Delta</span>
+                        <span class="metric-value" style="color:#f97316;">+${{c.uhi_index}} °C</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Ocean Surface Thermal</span>
+                        <span class="metric-value" style="color:#06b6d4;">${{c.ocean_heat}} °C</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Air Quality Index (AQI)</span>
+                        <span class="metric-value" style="color:#facc15;">${{c.aqi}}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Grid Carbon Intensity</span>
+                        <span class="metric-value">${{c.carbon_gco2}} gCO2/kWh</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Turbulence Risk Index</span>
+                        <span class="metric-value" style="color:#a855f7;">${{c.turbulence_score}} / 100</span>
+                    </div>
+                    <div class="metric-row" style="border-bottom:none;">
+                        <span class="metric-label">Pollen Index</span>
+                        <span class="metric-value" style="font-size:0.8rem; text-align:right;">${{c.pollen_index}}</span>
+                    </div>
+                `;
+            }}
+
+            function updateComparison() {{
+                const c1Key = document.getElementById('city1Select').value;
+                const c2Key = document.getElementById('city2Select').value;
+
+                document.getElementById('card1').innerHTML = renderCityCard(c1Key);
+                document.getElementById('card2').innerHTML = renderCityCard(c2Key);
+
+                const c1 = citiesData[c1Key];
+                const c2 = citiesData[c2Key];
+
+                if (compareChart) compareChart.destroy();
+
+                const ctx = document.getElementById('compareChart').getContext('2d');
+                compareChart = new Chart(ctx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: ['Temp (°C)', 'UHI (°C)', 'Ocean Heat (°C)', 'AQI Index', 'Carbon (gCO2/kWh)', 'Turbulence'],
+                        datasets: [
+                            {{
+                                label: c1.name,
+                                data: [c1.temp, c1.uhi_index, c1.ocean_heat, c1.aqi, c1.carbon_gco2, c1.turbulence_score],
+                                backgroundColor: 'rgba(56, 189, 248, 0.7)',
+                                borderColor: '#38bdf8',
+                                borderWidth: 1
+                            }},
+                            {{
+                                label: c2.name,
+                                data: [c2.temp, c2.uhi_index, c2.ocean_heat, c2.aqi, c2.carbon_gco2, c2.turbulence_score],
+                                backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                                borderColor: '#ef4444',
+                                borderWidth: 1
+                            }}
+                        ]
+                    }},
+                    options: {{
+                        responsive: true,
+                        scales: {{
+                            x: {{ ticks: {{ color: '#8b949e' }} }},
+                            y: {{ ticks: {{ color: '#8b949e' }} }}
+                        }},
+                        plugins: {{
+                            legend: {{ labels: {{ color: '#e6edf3' }} }}
+                        }}
+                    }}
+                }});
+            }}
+
+            window.onload = updateComparison;
+        </script>
+    </body>
+    </html>
+    """
 
 # =====================================================================
-# 8. PAGE 3: ABOUT & LEARN STORY PAGE (`/about`)
+# 7. PAGE 3: ABOUT & LEARN STORY PAGE (`/about`)
 # =====================================================================
 @app.get("/about", response_class=HTMLResponse, tags=["UI Portal"])
 def render_about_page():
@@ -625,7 +822,7 @@ def render_about_page():
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>About EcoPulse - Climate Intelligence Story & Features</title>
+        <title>About EcoPulse - Climate Intelligence Platform</title>
         <style>
             * {{ margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
             body {{ background:#0b0f17; color:#e6edf3; display:flex; flex-direction:column; min-height:100vh; line-height:1.6; }}
@@ -642,52 +839,33 @@ def render_about_page():
         {NAVBAR_HTML}
         <div class="content">
             <h1>🌍 The EcoPulse Platform Story</h1>
-            <p><strong>EcoPulse</strong> was engineered as an all-in-one climate monitoring and predictive AI intelligence suite designed to bridge real-time environmental data with machine learning decision support systems.</p>
+            <p><strong>EcoPulse</strong> is an enterprise climate monitoring and predictive AI intelligence suite bridging real-time environmental telemetry with machine learning systems.</p>
 
-            <h2>🚀 Mission & What We Can Do</h2>
-            <p>From monitoring real-time urban heat buildup in dense megacities to delivering precise pollen alerts for sensitive populations in cities like Lahore and Islamabad, EcoPulse consolidates complex geospatial datasets into actionable insights.</p>
-
-            <h2>🌟 Complete Feature Capabilities (All 10 Core Modules + Real-time APIs)</h2>
+            <h2>🚀 Core Capabilities Included:</h2>
             <div class="feature-grid">
                 <div class="feature-box">
-                    <div class="feature-title">1. Real-Time Atmospheric Weather</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Live integration with global meteorology services fetching live surface temperatures, wind vectors, and humidity levels.</p>
+                    <div class="feature-title">1. Urban Heat Island (UHI) Diagnostics</div>
+                    <p style="font-size:0.85rem; color:#8b949e;">Measures microclimate heat trapping in dense concrete urban centers versus surrounding baseline areas.</p>
                 </div>
                 <div class="feature-box">
-                    <div class="feature-title">2. Global Wildfire Tracker (10 Hotspots & NASA FIRMS)</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Satellite thermal anomaly detections identifying fire Radiative Power (FRP) via MODIS/VIIRS sensors.</p>
+                    <div class="feature-title">2. Ocean Heat & Sea Surface Anomaly</div>
+                    <p style="font-size:0.85rem; color:#8b949e;">Monitors thermal heat buildup across marine ecosystems and coastal sectors.</p>
                 </div>
                 <div class="feature-box">
-                    <div class="feature-title">3. Pollen & Allergy Alert Engine</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Detailed botanical particle tracking calculating tree, grass, and weed pollen concentrations for urban health safety.</p>
+                    <div class="feature-title">3. Carbon Grid Emission Tracking</div>
+                    <p style="font-size:0.85rem; color:#8b949e;">Evaluates real-time electrical grid carbon intensities (gCO2eq/kWh) powered by Electricity Maps API.</p>
                 </div>
                 <div class="feature-box">
-                    <div class="feature-title">4. Urban Heat Island (UHI) Diagnostics</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Live surface temperature delta metrics measuring urban microclimate buildup against surrounding rural baselines.</p>
+                    <div class="feature-title">4. Atmospheric Turbulence & Wind Shear</div>
+                    <p style="font-size:0.85rem; color:#8b949e;">Calculates boundary-layer wind speed and gust deltas to score aviation and structural safety hazards.</p>
                 </div>
                 <div class="feature-box">
-                    <div class="feature-title">5. Interactive Scenario Simulator</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Adjust urban density, tree canopy, and renewable energy adoption rates to simulate instant climate offset score changes.</p>
+                    <div class="feature-title">5. Pollen & Allergy Alert Engine</div>
+                    <p style="font-size:0.85rem; color:#8b949e;">Detailed botanical particle tracking calculating tree, grass, and weed pollen concentrations.</p>
                 </div>
                 <div class="feature-box">
-                    <div class="feature-title">6. Intelligent AI Chat Assistant</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Context-aware natural language assistant capable of querying specific city metrics, pollen, weather, and active alerts.</p>
-                </div>
-                <div class="feature-box">
-                    <div class="feature-title">7. Multi-City Matrix Comparison</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Side-by-side analysis tool evaluating Air Quality Indices (AQI), grid carbon emissions, and climate readiness rankings.</p>
-                </div>
-                <div class="feature-box">
-                    <div class="feature-title">8. Marine Heatwave Monitor</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Sea surface thermal anomaly tracking to assess coral bleaching risks and marine eco-stress levels.</p>
-                </div>
-                <div class="feature-box">
-                    <div class="feature-title">9. Grid Carbon Intensity (Electricity Maps API)</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Live evaluation of sovereign energy grids, measuring real-time gCO2eq/kWh emissions.</p>
-                </div>
-                <div class="feature-box">
-                    <div class="feature-title">10. Atmospheric Turbulence Index</div>
-                    <p style="font-size:0.85rem; color:#8b949e;">Wind shear and gust differential calculations assessing low-altitude turbulence hazards.</p>
+                    <div class="feature-title">6. Global Wildfire & Hotspot Tracker</div>
+                    <p style="font-size:0.85rem; color:#8b949e;">Real-time NASA FIRMS thermal hotspots tracking Fire Radiative Power (FRP) globally.</p>
                 </div>
             </div>
         </div>
