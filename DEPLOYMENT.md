@@ -1,87 +1,49 @@
+# ☁️ EcoPulse Render Deployment Guide
+
+Follow this step-by-step guide to deploy **EcoPulse** on Render.
 
 ---
 
-## 📄 `DEPLOYMENT.md` (Full)
+## 1. Render Web Service Setup
 
-```markdown
-# EcoPulse Deployment Guide
-
-Deploy the **EcoPulse** backend and frontend to free cloud platforms.
-
----
-
-## 📦 Backend (Render)
-
-1. Push your code to a GitHub repository.
-2. Go to [Render](https://render.com) and create a new **Web Service**.
-3. Connect your GitHub repo.
-4. Set:
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port 10000`
-5. Add environment variables (optional):
-   - `NASA_FIRMS_TOKEN` – get from [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/download/)
-   - `ELECTRICITY_MAP_TOKEN` – get from [ElectricityMap](https://www.electricitymap.org/api)
-6. Deploy. Your API will be available at `https://your-app.onrender.com`.
-
-> **Note:** `main.py` serves `dashboard.html` from the same folder. Ensure the HTML file is in the root or adjust the path accordingly.
+1. Log into your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** -> **Web Service**.
+3. Connect your GitHub repository containing `main.py`.
+4. Configure the runtime parameters:
+   - **Name:** `ecopulse` (or your preferred service name)
+   - **Environment:** `Python 3`
+   - **Build Command:**
+     ```bash
+     pip install fastapi uvicorn httpx requests pydantic
+     ```
+   - **Start Command:**
+     ```bash
+     uvicorn main:app --host 0.0.0.0 --port $PORT
+     ```
 
 ---
 
-## 🌐 Frontend (Vercel / Netlify)
+## 2. Environment Variables Configuration
 
-### Option A: Serve from Backend (Simplest)
-- The backend already serves `dashboard.html` at the root (`/`). Just deploy the backend as above.
+In your Render Service settings, navigate to **Environment** and add the following keys:
 
-### Option B: Static Hosting
-1. Upload `dashboard.html` to Vercel or Netlify.
-2. Update the API base URL in the JavaScript (if needed) to your backend URL.
-3. Deploy.
+| Key | Example Value | Description |
+| :--- | :--- | :--- |
+| `SENDER_EMAIL` | `your.email@gmail.com` | Gmail address used for sending alerts |
+| `SENDER_PASSWORD` | `xxxx xxxx xxxx xxxx` | **16-digit Google App Password** |
+| `SMTP_SERVER` | `smtp.gmail.com` | SMTP Server Host |
+| `SMTP_PORT` | `465` | **465** (Recommended for SSL on Render) |
+| `ELECTRICITY_MAPS_TOKEN` | *(Optional)* | API token for real-time grid carbon data |
+| `NASA_FIRMS_TOKEN` | *(Optional)* | API token for live satellite thermal data |
 
----
-
-## 💾 Database (Optional)
-
-We use **in‑memory caching** by default. For production, add:
-- **PostgreSQL** (via Supabase or PlanetScale) for persistent storage.
-- **Redis** for caching (optional).
-
-Update `data_fetchers.py` to store/retrieve data from a database.
+> ⚠️ **Important Google App Password Note:**
+> Do NOT use your primary Gmail account password. Go to **Google Account Settings -> Security -> 2-Step Verification -> App Passwords**, generate a key for "EcoPulse", and paste it into `SENDER_PASSWORD`.
 
 ---
 
-## 🔐 Environment Variables
+## 3. Verifying Deployment
 
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `NASA_FIRMS_TOKEN` | Real fire data | ❌ (mock fallback) |
-| `ELECTRICITY_MAP_TOKEN` | Real carbon data | ❌ (mock fallback) |
-| `DATABASE_URL` | PostgreSQL connection | ❌ |
-| `REDIS_URL` | Redis connection | ❌ |
-
-Without API keys, the app uses **realistic mock data**.
-
----
-
-## 🧪 Testing Deployment
-
-After deployment, visit `/api/health` to confirm the backend is running.  
-Then open the dashboard URL to start exploring.
-
----
-
-## 📈 Scaling
-
-For high traffic, consider:
-- Using **Gunicorn** with Uvicorn workers.
-- Adding a **CDN** for static assets.
-- Enabling **Redis caching**.
-- Setting up **rate limiting**.
-
----
-
-## 🚀 Quick Deploy to Render
-
-```bash
-# 1. Push code to GitHub
-# 2. On Render: New Web Service → Connect → Set commands (as above)
-# 3. Deploy
+Once deployed, test your live instance:
+- **Main Dashboard:** `https://<your-render-app>.onrender.com/`
+- **Compare Page:** `https://<your-render-app>.onrender.com/compare`
+- **Swagger Docs:** `https://<your-render-app>.onrender.com/docs`

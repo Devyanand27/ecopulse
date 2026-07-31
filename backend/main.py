@@ -171,7 +171,7 @@ def send_welcome_alert_email(user_email: str):
         logger.info(f"Subscription alert successfully sent to {user_email}")
     except Exception as e:
         logger.error(f"Failed to send email to {user_email}: {str(e)}")
-        
+
 # =====================================================================
 # 4. REST & TELEMETRY ENDPOINTS
 # =====================================================================
@@ -654,6 +654,9 @@ def render_live_map():
 # =====================================================================
 # 6. PAGE 2: CITIES COMPARISON PAGE (/compare & /compare.html)
 # =====================================================================
+# =====================================================================
+# 6. PAGE 2: DYNAMIC GLOBAL CITIES COMPARISON PAGE (/compare & /compare.html)
+# =====================================================================
 @app.get("/compare", response_class=HTMLResponse, tags=["UI Portal"])
 @app.get("/compare.html", response_class=HTMLResponse, tags=["UI Portal"])
 def render_cities_compare_page():
@@ -662,7 +665,7 @@ def render_cities_compare_page():
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>EcoPulse - City Climate Comparison Matrix</title>
+        <title>EcoPulse - Dynamic Global City Climate Comparison</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
             * {{ margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
@@ -670,46 +673,75 @@ def render_cities_compare_page():
             .container {{ padding:24px; max-width:1200px; margin:0 auto; width:100%; }}
             h1 {{ color:#38bdf8; font-size:1.8rem; margin-bottom:20px; }}
             .selector-bar {{ display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }}
-            .select-group {{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:200px; }}
+            .select-group {{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:280px; position:relative; }}
             label {{ font-size:0.85rem; color:#8b949e; font-weight:600; }}
-            select {{ background:#111622; border:1px solid #212636; color:#fff; padding:10px; border-radius:8px; font-size:0.9rem; outline:none; }}
+            .input-box-wrap {{ display:flex; gap:8px; position:relative; }}
+            input {{ flex:1; background:#111622; border:1px solid #212636; color:#fff; padding:10px 12px; border-radius:8px; font-size:0.9rem; outline:none; }}
+            input:focus {{ border-color:#38bdf8; }}
+            button.fetch-btn {{ background:#0284c7; color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.85rem; transition:background 0.2s; }}
+            button.fetch-btn:hover {{ background:#0369a1; }}
+            
+            /* Dynamic Auto-Complete Suggestions Dropdown */
+            .suggestions-box {{
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 70px;
+                background: #161b26;
+                border: 1px solid #283044;
+                border-radius: 8px;
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 999;
+                display: none;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            }}
+            .suggestion-item {{
+                padding: 10px 12px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                color: #d1d5db;
+                border-bottom: 1px solid #1f293d;
+            }}
+            .suggestion-item:hover {{ background: #222b3e; color: #38bdf8; }}
+
             .compare-grid {{ display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px; margin-bottom:30px; }}
-            .city-card {{ background:#111622; border:1px solid #212636; border-radius:12px; padding:20px; }}
+            .city-card {{ background:#111622; border:1px solid #212636; border-radius:12px; padding:20px; min-height:280px; position:relative; }}
             .city-name {{ font-size:1.4rem; font-weight:700; color:#38bdf8; margin-bottom:4px; }}
             .country-name {{ font-size:0.85rem; color:#8b949e; margin-bottom:16px; }}
             .metric-row {{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1c2333; font-size:0.9rem; }}
             .metric-label {{ color:#8b949e; }}
             .metric-value {{ font-weight:600; color:#f1f5f9; }}
             .chart-card {{ background:#111622; border:1px solid #212636; border-radius:12px; padding:20px; }}
+            .loading-spinner {{ display:none; color:#38bdf8; font-size:0.85rem; margin-top:4px; }}
         </style>
     </head>
     <body>
         {NAVBAR_HTML}
         <div class="container">
             <h1>📊 Global Cities Climate Matrix Comparison</h1>
-            
+
             <div class="selector-bar">
+                <!-- City 1 Search Input -->
                 <div class="select-group">
-                    <label>Select Primary City</label>
-                    <select id="city1Select" onchange="updateComparison()">
-                        <option value="lahore" selected>Lahore (Pakistan)</option>
-                        <option value="karachi">Karachi (Pakistan)</option>
-                        <option value="islamabad">Islamabad (Pakistan)</option>
-                        <option value="dubai">Dubai (UAE)</option>
-                        <option value="london">London (UK)</option>
-                        <option value="new york">New York (USA)</option>
-                    </select>
+                    <label>Primary City (Type Any City Worldwide)</label>
+                    <div class="input-box-wrap">
+                        <input type="text" id="city1Input" value="Islamabad" placeholder="Search any city in the world..." oninput="handleCitySearch(1)" autocomplete="off">
+                        <button class="fetch-btn" onclick="fetchCityData(1)">Compare</button>
+                    </div>
+                    <div class="suggestions-box" id="sug1"></div>
+                    <div class="loading-spinner" id="load1">Fetching real-time telemetry...</div>
                 </div>
+
+                <!-- City 2 Search Input -->
                 <div class="select-group">
-                    <label>Select Comparison City</label>
-                    <select id="city2Select" onchange="updateComparison()">
-                        <option value="karachi">Karachi (Pakistan)</option>
-                        <option value="lahore">Lahore (Pakistan)</option>
-                        <option value="islamabad" selected>Islamabad (Pakistan)</option>
-                        <option value="dubai">Dubai (UAE)</option>
-                        <option value="london">London (UK)</option>
-                        <option value="new york">New York (USA)</option>
-                    </select>
+                    <label>Comparison City (Type Any City Worldwide)</label>
+                    <div class="input-box-wrap">
+                        <input type="text" id="city2Input" value="Lahore" placeholder="Search any city in the world..." oninput="handleCitySearch(2)" autocomplete="off">
+                        <button class="fetch-btn" onclick="fetchCityData(2)">Compare</button>
+                    </div>
+                    <div class="suggestions-box" id="sug2"></div>
+                    <div class="loading-spinner" id="load2">Fetching real-time telemetry...</div>
                 </div>
             </div>
 
@@ -719,61 +751,159 @@ def render_cities_compare_page():
             </div>
 
             <div class="chart-card">
-                <h3 style="color:#38bdf8; margin-bottom:16px;">Multi-Metric Visual Comparison (UHI, Ocean Heat, Carbon, AQI, Turbulence)</h3>
+                <h3 style="color:#38bdf8; margin-bottom:16px;">Real-Time Multi-Metric Visual Comparison</h3>
                 <canvas id="compareChart" height="100"></canvas>
             </div>
         </div>
 
         <script>
-            const citiesData = {json.dumps(GLOBAL_CITIES_REGISTRY)};
+            let city1Telemetry = null;
+            let city2Telemetry = null;
             let compareChart = null;
+            let searchDebounce = {{ 1: null, 2: null }};
 
-            function renderCityCard(cityKey) {{
-                const c = citiesData[cityKey];
-                if(!c) return '';
+            // Global Real-Time Geocoding API Search (No Hardcoded Cities)
+            async function handleCitySearch(cityNum) {{
+                const inputVal = document.getElementById(`city${{cityNum}}Input`).value.trim();
+                const sugBox = document.getElementById(`sug${{cityNum}}`);
+
+                if (inputVal.length < 2) {{
+                    sugBox.style.display = 'none';
+                    return;
+                }}
+
+                clearTimeout(searchDebounce[cityNum]);
+                searchDebounce[cityNum] = setTimeout(async () => {{
+                    try {{
+                        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${{encodeURIComponent(inputVal)}}&count=6&language=en&format=json`);
+                        const data = await res.json();
+                        
+                        if (!data.results || data.results.length === 0) {{
+                            sugBox.style.display = 'none';
+                            return;
+                        }}
+
+                        sugBox.innerHTML = '';
+                        data.results.forEach(city => {{
+                            const country = city.country ? `, ${{city.country}}` : '';
+                            const admin = city.admin1 ? ` (${{city.admin1}})` : '';
+                            const item = document.createElement('div');
+                            item.className = 'suggestion-item';
+                            item.innerText = `${{city.name}}${{admin}}${{country}}`;
+                            item.onclick = () => {{
+                                document.getElementById(`city${{cityNum}}Input`).value = city.name;
+                                sugBox.style.display = 'none';
+                                fetchCityData(cityNum);
+                            }};
+                            sugBox.appendChild(item);
+                        }});
+                        sugBox.style.display = 'block';
+                    }} catch (e) {{
+                        console.error('Geocoding error:', e);
+                    }}
+                }}, 250);
+            }}
+
+            // Close suggestion drop-downs when clicking outside
+            document.addEventListener('click', (e) => {{
+                if (!e.target.closest('.select-group')) {{
+                    document.getElementById('sug1').style.display = 'none';
+                    document.getElementById('sug2').style.display = 'none';
+                }}
+            }});
+
+            async function fetchTelemetryData(cityName) {{
+                const res = await fetch(`/api/telemetry?city=${{encodeURIComponent(cityName)}}`);
+                if(!res.ok) throw new Error('City not found');
+                return await res.json();
+            }}
+
+            function parseNumber(str) {{
+                if(!str) return 0;
+                const match = str.toString().match(/-?\d+(\.\d+)?/);
+                return match ? parseFloat(match[0]) : 0;
+            }}
+
+            function renderCityCard(data) {{
+                if(!data) return `<div style="color:#ef4444; padding:20px;">Unable to load telemetry data.</div>`;
+                
                 return `
-                    <div class="city-name">${{c.name}}</div>
-                    <div class="country-name">📍 ${{c.country}} | Pop: ${{c.pop}}</div>
+                    <div class="city-name">${{data.city}}</div>
+                    <div class="country-name">📍 ${{data.country}} | Lat: ${{data.coordinates.lat}}, Lon: ${{data.coordinates.lon}}</div>
                     <div class="metric-row">
                         <span class="metric-label">Temperature</span>
-                        <span class="metric-value" style="color:#f87171;">${{c.temp}} °C</span>
+                        <span class="metric-value" style="color:#f87171;">${{data.temperature}}</span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Urban Heat Island (UHI) Delta</span>
-                        <span class="metric-value" style="color:#f97316;">+${{c.uhi_index}} °C</span>
+                        <span class="metric-value" style="color:#f97316;">${{data.uhi_index}}</span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Ocean Surface Thermal</span>
-                        <span class="metric-value" style="color:#06b6d4;">${{c.ocean_heat}} °C</span>
+                        <span class="metric-value" style="color:#06b6d4;">${{data.ocean_surface_heat}}</span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Air Quality Index (AQI)</span>
-                        <span class="metric-value" style="color:#facc15;">${{c.aqi}}</span>
+                        <span class="metric-value" style="color:#facc15;">${{data.aqi}}</span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Grid Carbon Intensity</span>
-                        <span class="metric-value">${{c.carbon_gco2}} gCO2/kWh</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">Turbulence Risk Index</span>
-                        <span class="metric-value" style="color:#a855f7;">${{c.turbulence_score}} / 100</span>
+                        <span class="metric-value">${{data.grid_carbon_intensity}}</span>
                     </div>
                     <div class="metric-row" style="border-bottom:none;">
-                        <span class="metric-label">Pollen Index</span>
-                        <span class="metric-value" style="font-size:0.8rem; text-align:right;">${{c.pollen_index}}</span>
+                        <span class="metric-label">Turbulence Risk Index</span>
+                        <span class="metric-value" style="color:#a855f7;">${{data.turbulence_risk ? data.turbulence_risk.score : 0}} / 100 (${{data.turbulence_risk ? data.turbulence_risk.level : 'N/A'}})</span>
                     </div>
                 `;
             }}
 
-            function updateComparison() {{
-                const c1Key = document.getElementById('city1Select').value;
-                const c2Key = document.getElementById('city2Select').value;
+            async function fetchCityData(cityNum) {{
+                const inputId = cityNum === 1 ? 'city1Input' : 'city2Input';
+                const loadId = cityNum === 1 ? 'load1' : 'load2';
+                const cardId = cityNum === 1 ? 'card1' : 'card2';
+                const cityName = document.getElementById(inputId).value.trim();
 
-                document.getElementById('card1').innerHTML = renderCityCard(c1Key);
-                document.getElementById('card2').innerHTML = renderCityCard(c2Key);
+                if(!cityName) return;
 
-                const c1 = citiesData[c1Key];
-                const c2 = citiesData[c2Key];
+                document.getElementById(loadId).style.display = 'block';
+
+                try {{
+                    const data = await fetchTelemetryData(cityName);
+                    if(cityNum === 1) city1Telemetry = data;
+                    else city2Telemetry = data;
+
+                    document.getElementById(cardId).innerHTML = renderCityCard(data);
+                    updateChart();
+                }} catch(err) {{
+                    document.getElementById(cardId).innerHTML = `<div style="color:#ef4444; padding:20px;">City "${{cityName}}" not found or telemetry offline. Please try another city.</div>`;
+                }} finally {{
+                    document.getElementById(loadId).style.display = 'none';
+                }}
+            }}
+
+            function updateChart() {{
+                if(!city1Telemetry || !city2Telemetry) return;
+
+                const c1 = city1Telemetry;
+                const c2 = city2Telemetry;
+
+                const c1Temp = parseNumber(c1.temperature);
+                const c2Temp = parseNumber(c2.temperature);
+
+                const c1Uhi = parseNumber(c1.uhi_index);
+                const c2Uhi = parseNumber(c2.uhi_index);
+
+                const c1Ocean = parseNumber(c1.ocean_surface_heat);
+                const c2Ocean = parseNumber(c2.ocean_surface_heat);
+
+                const c1Aqi = c1.aqi || 0;
+                const c2Aqi = c2.aqi || 0;
+
+                const c1Carbon = parseNumber(c1.grid_carbon_intensity);
+                const c2Carbon = parseNumber(c2.grid_carbon_intensity);
+
+                const c1Turb = c1.turbulence_risk ? c1.turbulence_risk.score : 0;
+                const c2Turb = c2.turbulence_risk ? c2.turbulence_risk.score : 0;
 
                 if (compareChart) compareChart.destroy();
 
@@ -784,15 +914,15 @@ def render_cities_compare_page():
                         labels: ['Temp (°C)', 'UHI (°C)', 'Ocean Heat (°C)', 'AQI Index', 'Carbon (gCO2/kWh)', 'Turbulence'],
                         datasets: [
                             {{
-                                label: c1.name,
-                                data: [c1.temp, c1.uhi_index, c1.ocean_heat, c1.aqi, c1.carbon_gco2, c1.turbulence_score],
+                                label: c1.city,
+                                data: [c1Temp, c1Uhi, c1Ocean, c1Aqi, c1Carbon, c1Turb],
                                 backgroundColor: 'rgba(56, 189, 248, 0.7)',
                                 borderColor: '#38bdf8',
                                 borderWidth: 1
                             }},
                             {{
-                                label: c2.name,
-                                data: [c2.temp, c2.uhi_index, c2.ocean_heat, c2.aqi, c2.carbon_gco2, c2.turbulence_score],
+                                label: c2.city,
+                                data: [c2Temp, c2Uhi, c2Ocean, c2Aqi, c2Carbon, c2Turb],
                                 backgroundColor: 'rgba(239, 68, 68, 0.7)',
                                 borderColor: '#ef4444',
                                 borderWidth: 1
@@ -812,7 +942,10 @@ def render_cities_compare_page():
                 }});
             }}
 
-            window.onload = updateComparison;
+            window.onload = async () => {{
+                await fetchCityData(1);
+                await fetchCityData(2);
+            }};
         </script>
     </body>
     </html>
