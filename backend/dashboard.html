@@ -71,13 +71,15 @@
         const RENDER_API_URL = "https://ecopulse-1-b2lm.onrender.com";
 
         async function fetchLiveTelemetry() {
-            const telemetryContainer = document.getElementById("telemetry-status");
+            // 🔴 PEHLE: document.getElementById("telemetry-status")
+            // ✅ AB (Line 632 ki exact ID):
+            const telemetryContainer = document.getElementById("ai-metrics-container");
+
             if (!telemetryContainer) return;
 
             try {
-                // Timeout set kar rahe hain taake agar Render slow ho toh hanging na ho
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 sec timeout
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
 
                 const response = await fetch(`${RENDER_API_URL}/api/telemetry`, {
                     signal: controller.signal
@@ -88,7 +90,6 @@
 
                 const data = await response.json();
 
-                // UI Update with real backend data
                 telemetryContainer.innerHTML = `
             <div style="display: flex; gap: 15px; align-items: center; color: #38bdf8; font-size: 0.85rem; font-weight: 500;">
               <span>Latency: <strong style="color: #4ade80;">${data.latency || 14.2}ms</strong></span>
@@ -99,9 +100,7 @@
             </div>
         `;
             } catch (error) {
-                console.warn("Telemetry endpoint starting or unreachable, using fallback values:", error);
-
-                // Instant Fallback UI taake 'Loading...' stuck na rahe
+                console.warn("Telemetry fallback active:", error);
                 telemetryContainer.innerHTML = `
             <div style="display: flex; gap: 15px; align-items: center; color: #38bdf8; font-size: 0.85rem; font-weight: 500;">
               <span>Latency: <strong style="color: #4ade80;">14.2ms</strong></span>
@@ -114,7 +113,10 @@
             }
         }
 
-        // Immediately call on script load
+        // Global scope
+        window.fetchLiveTelemetry = fetchLiveTelemetry;
+
+        // Run immediately
         fetchLiveTelemetry();
         setInterval(fetchLiveTelemetry, 10000);
     </script>
