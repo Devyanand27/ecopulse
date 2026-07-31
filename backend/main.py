@@ -389,7 +389,7 @@ def render_live_map():
             body {{ display:flex; flex-direction:column; height:100vh; background:#0b0f17; color:#e6edf3; overflow:hidden; }}
             .container {{ display:flex; flex:1; height:calc(100vh - 55px); }}
             #sidebar {{ width:380px; background:#111622; border-right:1px solid #212636; display:flex; flex-direction:column; padding:14px; gap:12px; overflow-y:auto; }}
-            #map {{ flex:1; height:100%; background:#000; }}
+            #map {{ flex:1; height:100%; background:#000; width:100%; min-height:100%; }}
             .card {{ background:#0b0f17; border:1px solid #212636; border-radius:8px; padding:12px; }}
             .card-title {{ font-size:0.85rem; font-weight:700; color:#38bdf8; margin-bottom:8px; }}
             .layer-grid {{ display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }}
@@ -415,7 +415,7 @@ def render_live_map():
     <body>
         {NAVBAR_HTML}
         <div class="container">
-            <div id="sidebar" style="overflow-y: auto; max-height: calc(100vh - 60px);">
+            <div id="sidebar">
                 <div class="card">
                     <div class="card-title">🔍 Global City Telemetry Search</div>
                     <div style="display:flex; gap:6px;">
@@ -464,30 +464,26 @@ def render_live_map():
                 </div>
 
                 <div class="card">
-    <div class="card-title">📈 7-Day Forecast Matrix</div>
-    <canvas id="forecastChart" height="120"></canvas>
-</div>
+                    <div class="card-title">📈 7-Day Forecast Matrix</div>
+                    <canvas id="forecastChart" height="120"></canvas>
+                </div>
 
-<div class="card" style="border: 1px solid #10b981; margin-top: 12px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0; font-size: 1rem; color: #fff;">🤖 AI Model Live Validation</h3>
-        <span style="background: #1e293b; color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">
-            XGBoost Engine
-        </span>
-    </div>
+                <!-- 🤖 AI Model Live Validation (Fixed structure without extra closing divs) -->
+                <div class="card" style="border: 1px solid #10b981; margin-top: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <h4 style="margin: 0; font-size: 0.85rem; color: #f8fafc; font-weight: 600;">🤖 AI Model Live Validation</h4>
+                        <span style="background: #1e293b; color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
+                            XGBoost Engine
+                        </span>
+                    </div>
 
-    <!-- Live Telemetry Data Container -->
-    <div id="telemetry-status" style="color: #94a3b8; font-size: 0.85rem;">
-        Loading real-time model telemetry...
-    </div>
-</div>
-            <div id="ai-metrics-container">
-                <p style="font-size: 12px; color: #94a3b8;">Loading real-time model telemetry...</p>
-            </div>
-        </div>
-            </div>
+                    <div id="telemetry-status" style="color: #94a3b8; font-size: 0.8rem;">
+                        Loading real-time model telemetry...
+                    </div>
+                </div>
+            </div> <!-- Sidebar closes here properly -->
 
-            <div id="map"></div>
+            <div id="map"></div> <!-- Map is outside sidebar, inside container -->
         </div>
 
         <div class="chat-widget">
@@ -500,6 +496,7 @@ def render_live_map():
                 <button onclick="sendChat()">Send</button>
             </div>
         </div>
+    
 
         <script>
             const map = L.map('map').setView([24.8607, 67.0011], 5);
