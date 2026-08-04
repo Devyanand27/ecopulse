@@ -296,61 +296,227 @@ async def get_city_telemetry(city: str = "Lahore"):
 @app.post("/api/v1/chat", tags=["AI"])
 def smart_ai_chatbot(chat: ChatMessage):
     msg = chat.message.lower().strip()
-    
-    # 1. Urban Heat / UHI Query
-    if "uhi" in msg or "urban heat" in msg:
+
+    # Utility function to detect city in user message
+    def find_city():
         for c in GLOBAL_CITIES_REGISTRY:
             if c in msg:
-                city = GLOBAL_CITIES_REGISTRY[c]
-                return {"reply": f"🏙️ **Urban Heat Island (UHI) Status for {city['name']}**:\n• Surface Heat Delta: +{city['uhi_index']}°C above rural baselines.\n• Driver: High asphalt density & concrete heat trap.\n• Recommendation: Increase urban canopy and cool roofing."}
+                return GLOBAL_CITIES_REGISTRY[c]
+        return None
+
+    matched_city = find_city()
+
+    # -------------------------------------------------------------
+    # 1. URBAN HEAT ISLAND (UHI) - Definition, Causes, & Impacts
+    # -------------------------------------------------------------
+    if "what is uhi" in msg or "what is urban heat" in msg or "cause of uhi" in msg or "impact of uhi" in msg:
+        return {
+            "reply": (
+                "🏙️ **Urban Heat Island (UHI) Explained**:\n"
+                "• **What It Is**: A microclimate phenomenon where city centers experience significantly higher temperatures than surrounding rural areas.\n"
+                "• **Causes**: Pavement density, concrete heat trapping, vehicle exhaust, and lack of green canopy.\n"
+                "• **Impact on Features & Sectors**: Elevates localized cooling energy demands, aggravates heat-related illness, and accelerates urban smog formation."
+            )
+        }
+    elif "uhi" in msg or "urban heat" in msg or "heat island" in msg:
+        if matched_city:
+            return {"reply": f"🏙️ **Urban Heat Island (UHI) Status for {matched_city['name']}**:\n• Surface Heat Delta: +{matched_city['uhi_index']}°C above rural baselines.\n• Driver: High asphalt density & concrete heat trap.\n• Recommendation: Increase urban canopy and cool roofing."}
         return {"reply": "🏙️ **Urban Heat Island (UHI) Layer**: UHI effect causes city centers to be 1.5°C to 4.5°C warmer than rural surroundings due to pavement density and reduced vegetation."}
 
-    # 2. Turbulence / Wind Shear Query
-    if "turbulence" in msg or "wind shear" in msg:
-        for c in GLOBAL_CITIES_REGISTRY:
-            if c in msg:
-                city = GLOBAL_CITIES_REGISTRY[c]
-                return {"reply": f"💨 **Turbulence Risk Score for {city['name']}**:\n• Atmospheric Index: {city['turbulence_score']}/100\n• Status: {'High Risk (Wind Shear)' if city['turbulence_score'] > 50 else 'Moderate Wind Conditions'}\n• Impact: Low-altitude aviation stability & rooftop structures."}
-        return {"reply": "💨 **Atmospheric Turbulence Layer**: Evaluates live boundary-layer wind speed and gust differentials to compute low-altitude aviation and wind hazard risks."}
-
-    # 3. Carbon Grid Query
-    if "carbon" in msg or "carbon grid" in msg or "grid" in msg:
-        for c in GLOBAL_CITIES_REGISTRY:
-            if c in msg:
-                city = GLOBAL_CITIES_REGISTRY[c]
-                return {"reply": f"⚡ **Carbon Grid Intensity for {city['name']}**:\n• Emission Rate: {city['carbon_gco2']} gCO2eq/kWh\n• Data Source: Electricity Maps API Telemetry.\n• Clean Energy Offset Target: Need +30% solar/wind integration to hit climate baseline."}
+    # -------------------------------------------------------------
+    # 2. CARBON GRID INTENSITY - Definition, Causes, & Impacts
+    # -------------------------------------------------------------
+    elif "what is carbon grid" in msg or "what is grid intensity" in msg or "cause of carbon" in msg or "impact of carbon" in msg:
+        return {
+            "reply": (
+                "⚡ **Carbon Grid Intensity Explained**:\n"
+                "• **What It Is**: The measurement of greenhouse gas emissions (gCO2eq) produced per kilowatt-hour of electricity generated.\n"
+                "• **Causes**: Heavy reliance on fossil-fuel power plants (coal, oil, gas) versus renewable sources (solar, wind, hydro).\n"
+                "• **Impact on Features & Sectors**: Directly affects city carbon footprint calculations, industrial sustainability compliance, and clean energy routing."
+            )
+        }
+    elif "carbon" in msg or "carbon grid" in msg or "grid intensity" in msg or "emission rate" in msg:
+        if matched_city:
+            return {"reply": f"⚡ **Carbon Grid Intensity for {matched_city['name']}**:\n• Emission Rate: {matched_city['carbon_gco2']} gCO2eq/kWh\n• Data Source: Electricity Maps API Telemetry.\n• Clean Energy Offset Target: Need +30% solar/wind integration to hit climate baseline."}
         return {"reply": "⚡ **Carbon Grid Layer**: Live tracking of regional electrical grid emission intensities worldwide."}
 
-    # 4. Ocean Heat Query
-    if "ocean" in msg or "ocean heat" in msg or "marine" in msg:
-        for c in GLOBAL_CITIES_REGISTRY:
-            if c in msg:
-                city = GLOBAL_CITIES_REGISTRY[c]
-                return {"reply": f"🌊 **Coastal Ocean Heat Index for {city['name']} Sector**:\n• Sea Surface Temperature: {city['ocean_heat']}°C\n• Thermal Anomaly: +2.1°C\n• Coral Bleaching Risk: Elevated."}
+    # -------------------------------------------------------------
+    # 3. ATMOSPHERIC TURBULENCE & WIND SHEAR - Definition, Causes, & Impacts
+    # -------------------------------------------------------------
+    elif "what is turbulence" in msg or "what is wind shear" in msg or "cause of turbulence" in msg or "impact of turbulence" in msg:
+        return {
+            "reply": (
+                "💨 **Atmospheric Turbulence & Wind Shear Explained**:\n"
+                "• **What It Is**: Sudden, rapid variations in wind speed and direction within boundary-layer air currents.\n"
+                "• **Causes**: Thermal updrafts from hot surfaces, localized pressure drops, and wind shear near high-rise structures.\n"
+                "• **Impact on Features & Sectors**: Threatens low-altitude aviation safety, commercial drone navigation, rooftop structural integrity, and wind farm stability."
+            )
+        }
+    elif "turbulence" in msg or "wind shear" in msg or "wind hazard" in msg:
+        if matched_city:
+            return {"reply": f"💨 **Turbulence Risk Score for {matched_city['name']}**:\n• Atmospheric Index: {matched_city['turbulence_score']}/100\n• Status: {'High Risk (Wind Shear)' if matched_city['turbulence_score'] > 50 else 'Moderate Wind Conditions'}\n• Impact: Low-altitude aviation stability & rooftop structures."}
+        return {"reply": "💨 **Atmospheric Turbulence Layer**: Evaluates live boundary-layer wind speed and gust differentials to compute low-altitude aviation and wind hazard risks."}
+
+    # -------------------------------------------------------------
+    # 4. AIR QUALITY INDEX (AQI) - Definition, Causes, & Impacts
+    # -------------------------------------------------------------
+    elif "what is aqi" in msg or "what is air quality" in msg or "cause of pollution" in msg or "impact of aqi" in msg:
+        return {
+            "reply": (
+                "😷 **Air Quality Index (AQI) Explained**:\n"
+                "• **What It Is**: A standardized scale (0-500) indicating how clean or polluted the ambient air is.\n"
+                "• **Causes**: Particulate matter (PM2.5, PM10), industrial emissions, vehicular pollution, crop burning, and stagnation.\n"
+                "• **Impact on Features & Sectors**: Causes respiratory health risks, reduces outdoor labor productivity, and triggers emergency city smog lockdowns."
+            )
+        }
+    elif "aqi" in msg or "air quality" in msg or "smog" in msg or "pm2.5" in msg or "pollution" in msg:
+        if matched_city:
+            return {"reply": f"😷 **Air Quality Index for {matched_city['name']}**:\n• AQI Level: {matched_city['aqi']}\n• Dominant Pollutant: PM2.5\n• Health Status: {'Unhealthy for Sensitive Groups' if matched_city['aqi'] > 100 else 'Moderate / Acceptable'}"}
+        return {"reply": "😷 **Air Quality Engine**: Live monitoring of PM2.5, PM10, NO2, and Ozone levels across urban centers."}
+
+    # -------------------------------------------------------------
+    # 5. OCEAN HEAT & SST ANOMALIES - Definition, Causes, & Impacts
+    # -------------------------------------------------------------
+    elif "what is ocean heat" in msg or "cause of marine heat" in msg or "impact of ocean heat" in msg:
+        return {
+            "reply": (
+                "🌊 **Ocean Heat Layer Explained**:\n"
+                "• **What It Is**: Measurement of thermal energy accumulation and sea surface temperature (SST) anomalies.\n"
+                "• **Causes**: Atmospheric greenhouse gas absorption, ocean current disruption, and intense solar exposure.\n"
+                "• **Impact on Features & Sectors**: Triggers coral bleaching, disrupts marine ecosystems, alters coastal weather, and fuels severe cyclones."
+            )
+        }
+    elif "ocean" in msg or "sea surface" in msg or "marine heat" in msg or "sst" in msg:
+        if matched_city:
+            return {"reply": f"🌊 **Coastal Ocean Heat Index for {matched_city['name']} Sector**:\n• Sea Surface Temperature: {matched_city['ocean_heat']}°C\n• Thermal Anomaly: +2.1°C\n• Coral Bleaching Risk: Elevated."}
         return {"reply": "🌊 **Ocean Heat Layer**: Tracks sea surface thermal anomalies and marine heatwave risk zones globally."}
 
-    # 5. Pollen Query
-    if "pollen" in msg:
-        for c in GLOBAL_CITIES_REGISTRY:
-            if c in msg:
-                city = GLOBAL_CITIES_REGISTRY[c]
-                return {"reply": f"🌿 **Pollen Metrics for {city['name']}**:\n• Risk Level: {city['pollen_index']}\n• Focus: Airborne botanical allergens.\n• Recommendation: Sensitive individuals should wear masks outdoors."}
+    # -------------------------------------------------------------
+    # 6. POLLEN & ALLERGENS - Definition, Causes, & Impacts
+    # -------------------------------------------------------------
+    elif "what is pollen" in msg or "cause of pollen" in msg or "impact of pollen" in msg:
+        return {
+            "reply": (
+                "🌿 **Pollen Risk Engine Explained**:\n"
+                "• **What It Is**: Real-time concentration measurement of airborne plant particles (tree, grass, weed pollen).\n"
+                "• **Causes**: Seasonal plant pollination cycles accelerated by rising atmospheric temperatures.\n"
+                "• **Impact on Features & Sectors**: Triggers allergic rhinitis and asthma, affecting public health and outdoor activity planning."
+            )
+        }
+    elif "pollen" in msg or "allergy" in msg or "allergens" in msg:
+        if matched_city:
+            return {"reply": f"🌿 **Pollen Metrics for {matched_city['name']}**:\n• Risk Level: {matched_city['pollen_index']}\n• Focus: Airborne botanical allergens.\n• Recommendation: Sensitive individuals should wear masks outdoors."}
         return {"reply": "🌿 **Pollen Layer**: Active botanical allergen monitoring across major global cities."}
 
-    # 6. Temperature / Weather query
-    if "temp" in msg or "weather" in msg:
-        for c in GLOBAL_CITIES_REGISTRY:
-            if c in msg:
-                city = GLOBAL_CITIES_REGISTRY[c]
-                return {"reply": f"🌡️ **Current Weather for {city['name']}**: Temp: {city['temp']}°C | AQI: {city['aqi']} | UHI Delta: +{city['uhi_index']}°C."}
+    # -------------------------------------------------------------
+    # 7. TEMPERATURE & GENERAL WEATHER
+    # -------------------------------------------------------------
+    elif "temp" in msg or "weather" in msg or "climate" in msg:
+        if matched_city:
+            return {"reply": f"🌡️ **Current Weather for {matched_city['name']}**: Temp: {matched_city['temp']}°C | AQI: {matched_city['aqi']} | UHI Delta: +{matched_city['uhi_index']}°C."}
         return {"reply": "🌡️ Global average surface thermal anomaly is currently at +2.6°C above pre-industrial baselines."}
 
-    # 7. Wildfire query
-    if "fire" in msg or "wildfire" in msg:
+    # -------------------------------------------------------------
+    # 8. WILDFIRES & SATELLITE TRACKING
+    # -------------------------------------------------------------
+    elif "fire" in msg or "wildfire" in msg or "hotspot" in msg or "burn" in msg:
         return {"reply": f"🔥 **Wildfire Layer**: EcoPulse is actively tracking {len(GLOBAL_WILDFIRES_DB)} major satellite hotspots including Margalla Hills, Amazon Basin, and California."}
 
+    # -------------------------------------------------------------
+    # 9. PREDICTIVE ML ENGINE & FORECASTING
+    # -------------------------------------------------------------
+    elif "predict" in msg or "forecast" in msg or "xgboost" in msg or "future" in msg or "48h" in msg:
+        return {"reply": "🔮 **EcoPulse Predictive Engine**: Uses XGBoost ML models trained on 10+ years of climate telemetry to forecast extreme heatwaves, flood alerts, and grid blackouts up to 48 hours in advance."}
+
+    # -------------------------------------------------------------
+    # 10. SCENARIO SIMULATOR & POLICY MODELLING
+    # -------------------------------------------------------------
+    elif "simulate" in msg or "scenario" in msg or "tree" in msg or "green cover" in msg or "what if" in msg:
+        return {"reply": "🌳 **Urban Policy Scenario Simulator**: Test policy interventions in real-time—e.g., adding 10,000 urban trees can drop city surface temperatures by ~1.2°C and reduce local air pollution by 8%."}
+
+    # -------------------------------------------------------------
+    # 11. RENEWABLE ENERGY & GRID DECARBONIZATION
+    # -------------------------------------------------------------
+    elif "renewable" in msg or "solar" in msg or "clean energy" in msg or "wind energy" in msg:
+        if matched_city:
+            return {"reply": f"☀️ **Renewable Mix for {matched_city['name']} Region**:\n• Grid Clean Energy Penetration: Estimated ~25–35%\n• Recommendation: Increase solar roof infrastructure during peak heat months."}
+        return {"reply": "☀️ **Renewable Energy Tracking**: Analyzes solar irradiance and wind potential to help grids offset high-carbon power plants."}
+
+    # -------------------------------------------------------------
+    # 12. FLOOD & RAINFALL INUNDATION
+    # -------------------------------------------------------------
+    elif "flood" in msg or "rain" in msg or "inundation" in msg or "precipitation" in msg:
+        if matched_city:
+            return {"reply": f"🌧️ **Flood Vulnerability for {matched_city['name']}**:\n• Urban Inundation Index: Moderate\n• Drain Absorbency Target: Clean storm drainage channels to prevent flash flooding."}
+        return {"reply": "🌧️ **Flood Inundation Watch**: Combines precipitation radar and terrain absorption data to predict urban flash flooding risks."}
+
+    # -------------------------------------------------------------
+    # 13. SEA LEVEL RISE & COASTAL HAZARDS
+    # -------------------------------------------------------------
+    elif "sea level" in msg or "coastal" in msg or "tsunami" in msg or "erosion" in msg:
+        return {"reply": "🌊 **Sea Level & Coastal Vulnerability**: Satellite radar altimetry monitors rising sea levels and storm surge threats for vulnerable coastal zones."}
+
+    # -------------------------------------------------------------
+    # 14. GLACIERS & ICE MELT
+    # -------------------------------------------------------------
+    elif "glacier" in msg or "ice" in msg or "arctic" in msg or "melt" in msg:
+        return {"reply": "🧊 **Glacial Retreat Monitor**: Tracks Northern Glacier ice loss and GLOF (Glacial Lake Outburst Flood) threat levels in high-mountain areas."}
+
+    # -------------------------------------------------------------
+    # 15. DROUGHT & AGRICULTURE
+    # -------------------------------------------------------------
+    elif "drought" in msg or "soil" in msg or "crop" in msg or "agriculture" in msg:
+        return {"reply": "🌾 **Drought & Soil Moisture Index**: Evaluates agricultural drought risk by monitoring soil moisture anomalies and vegetation health indices (NDVI)."}
+
+    # -------------------------------------------------------------
+    # 16. METHANE LEAKS
+    # -------------------------------------------------------------
+    elif "methane" in msg or "ch4" in msg or "gas leak" in msg:
+        return {"reply": "⛽ **Methane Plume Detector**: Satellite spectrometer tracking of super-emitting methane leaks from landfills, oilfields, and gas pipelines."}
+
+    # -------------------------------------------------------------
+    # 17. DEFORESTATION
+    # -------------------------------------------------------------
+    elif "forest" in msg or "tree loss" in msg or "deforestation" in msg:
+        return {"reply": "🌲 **Deforestation Sentinel**: Monitors illegal logging and canopy loss using weekly multi-spectral satellite imagery updates."}
+
+    # -------------------------------------------------------------
+    # 18. HEAT STRESS & WET-BULB HEALTH RISKS
+    # -------------------------------------------------------------
+    elif "heat stroke" in msg or "health risk" in msg or "wet bulb" in msg or "humidity" in msg:
+        if matched_city:
+            return {"reply": f"🚨 **Extreme Heat Health Warning for {matched_city['name']}**:\n• Wet-Bulb Risk Index: Moderate to High\n• Safety Guidance: Avoid heavy outdoors work between 12 PM - 4 PM. Stay hydrated."}
+        return {"reply": "🚨 **Wet-Bulb & Thermal Stress Watch**: Computes dangerous combinations of heat and humidity that pose human health risks."}
+
+    # -------------------------------------------------------------
+    # 19. UV RADIATION
+    # -------------------------------------------------------------
+    elif "uv" in msg or "uv index" in msg or "sun" in msg or "radiation" in msg:
+        return {"reply": "☀️ **Solar UV & Irradiance Watch**: Peak UV Index reaches 8-11+ during summer noon hours. Sun protection (SPF 50+) advised outdoors."}
+
+    # -------------------------------------------------------------
+    # 20. DATA SOURCES & APIS
+    # -------------------------------------------------------------
+    elif "source" in msg or "data" in msg or "api" in msg or "where" in msg:
+        return {"reply": "🛰️ **EcoPulse Data Sources**: Integrated live feeds from NASA FIRMS (Wildfires), Electricity Maps API (Grid Intensity), Open-Meteo, and Sentinel Satellites."}
+
+    # -------------------------------------------------------------
+    # 21. ABOUT ECOPULSE PLATFORM
+    # -------------------------------------------------------------
+    elif "ecopulse" in msg or "about" in msg or "what is this" in msg or "help" in msg:
+        return {"reply": "⚡ **EcoPulse AI System**: An intelligent climate intelligence dashboard analyzing live urban heat (UHI), carbon intensity, aviation turbulence, ocean thermal anomalies, and disaster hotspots."}
+
+    # -------------------------------------------------------------
+    # 22. GREETINGS & CHATBOT CHECK
+    # -------------------------------------------------------------
+    elif any(k in msg for k in ["hi", "hello", "hey", "salam", "aoa"]):
+        return {"reply": "👋 **Hello! I am EcoPulse AI Assistant.** Ask me about **Urban Heat (UHI)**, **Carbon Grid**, **Turbulence**, **Air Quality**, **Wildfires**, or **Scenario Simulations**!"}
+
+    # -------------------------------------------------------------
+    # DEFAULT FALLBACK
+    # -------------------------------------------------------------
     return {
-        "reply": f"🤖 **EcoPulse AI**: Ask me about **Urban Heat (UHI)**, **Atmospheric Turbulence**, **Carbon Grid Intensity**, **Ocean Heat**, **Pollen**, or **Wildfires** for any city!"
+        "reply": "🤖 **EcoPulse AI**: I didn't recognize that exact query. Ask me what UHI, Carbon Grid, AQI, or Turbulence are, or request a city metric!"
     }
 
 # NAVBAR SHARED HTML
