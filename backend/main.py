@@ -696,7 +696,7 @@ def render_live_map():
 
             // Leaflet Map Initialization
             const map = L.map('map').setView([24.8607, 67.0011], 5);
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(map);
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{{z}}/{{y}}/{{x}}', {{ maxZoom: 16 }}).addTo(map);
 
             const cityGroup = L.layerGroup().addTo(map);
             const fireGroup = L.layerGroup().addTo(map);
